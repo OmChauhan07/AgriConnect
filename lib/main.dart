@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:agri_connect/providers/auth_provider.dart';
 import 'package:agri_connect/providers/product_provider.dart';
 import 'package:agri_connect/providers/order_provider.dart';
 import 'package:agri_connect/screens/onboarding/landing_screen.dart';
 import 'package:agri_connect/utils/constants.dart';
+import 'package:agri_connect/utils/supabase_config.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.anonKey,
+  );
+
   runApp(const MyApp());
 }
 
@@ -67,7 +81,8 @@ class MyApp extends StatelessWidget {
             ),
             filled: true,
             fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
           ),
           textTheme: const TextTheme(
             bodyLarge: TextStyle(color: Colors.black87, fontSize: 16),

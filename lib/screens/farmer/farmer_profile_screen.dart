@@ -4,6 +4,8 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:agri_connect/providers/auth_provider.dart';
 import 'package:agri_connect/utils/constants.dart';
 import 'package:agri_connect/widgets/user_avatar.dart';
+import 'dart:io';
+import 'package:agri_connect/services/supabase_service.dart';
 
 class FarmerProfileScreen extends StatefulWidget {
   const FarmerProfileScreen({Key? key}) : super(key: key);
@@ -18,8 +20,10 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
   late TextEditingController _descriptionController;
+  final SupabaseService _supabaseService = SupabaseService();
   bool _isEditing = false;
   bool _isLoading = false;
+  bool _isUploadingImage = false;
 
   @override
   void initState() {
@@ -28,7 +32,8 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
     _nameController = TextEditingController(text: user.name);
     _phoneController = TextEditingController(text: user.phone);
     _addressController = TextEditingController(text: user.address ?? '');
-    _descriptionController = TextEditingController(text: user.description ?? '');
+    _descriptionController =
+        TextEditingController(text: user.description ?? '');
   }
 
   @override
@@ -58,7 +63,7 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
       );
 
       if (!mounted) return;
-      
+
       setState(() {
         _isEditing = false;
       });
@@ -73,6 +78,45 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
     } finally {
       setState(() {
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleImageSelected(File imageFile) async {
+    setState(() {
+      _isUploadingImage = true;
+    });
+
+    try {
+      final user =
+          Provider.of<AuthProvider>(context, listen: false).currentUser!;
+      final imageUrl =
+          await _supabaseService.uploadProfileImage(imageFile, user.id);
+
+      if (imageUrl != null) {
+        // Update the user's profile with the new image URL
+        final updatedUser = user.copyWith(profileImageUrl: imageUrl);
+        await Provider.of<AuthProvider>(context, listen: false)
+            .updateUserProfile(
+          name: updatedUser.name,
+          phone: updatedUser.phone,
+          address: updatedUser.address,
+          description: updatedUser.description,
+        );
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile image updated successfully')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating profile image: $e')),
+      );
+    } finally {
+      setState(() {
+        _isUploadingImage = false;
       });
     }
   }
@@ -121,20 +165,27 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
               Center(
                 child: Column(
                   children: [
-                    UserAvatar(
-                      imageUrl: user.profileImageUrl,
-                      radius: 60,
-                      showEditIcon: _isEditing,
-                      onTap: _isEditing
-                          ? () {
-                              // For prototype, we'll just show a snackbar
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Image upload not available in prototype'),
-                                ),
-                              );
-                            }
-                          : null,
+                    Stack(
+                      children: [
+                        UserAvatar(
+                          imageUrl: user.profileImageUrl,
+                          radius: 60,
+                          showEditIcon: _isEditing,
+                          onImageSelected: _handleImageSelected,
+                        ),
+                        if (_isUploadingImage)
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black26,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     if (!_isEditing)
@@ -341,7 +392,8 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                   width: double.infinity,
                   child: OutlinedButton(
                     onPressed: () {
-                      Provider.of<AuthProvider>(context, listen: false).logout();
+                      Provider.of<AuthProvider>(context, listen: false)
+                          .logout();
                       Navigator.of(context).popUntil((route) => route.isFirst);
                     },
                     style: OutlinedButton.styleFrom(
@@ -369,7 +421,8 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
-        crossAxisAlignment: isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        crossAxisAlignment:
+            isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(8),

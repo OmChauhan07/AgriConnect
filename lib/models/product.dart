@@ -14,6 +14,10 @@ class Product {
   final DateTime dateAdded;
   final bool isAvailable;
   final String? qrCodeData;
+  final String? videoUrl;
+  final String? cultivationPractices;
+  final String? harvestDate;
+  final String? bestBeforeDate;
 
   Product({
     required this.id,
@@ -29,6 +33,10 @@ class Product {
     required this.dateAdded,
     this.isAvailable = true,
     this.qrCodeData,
+    this.videoUrl,
+    this.cultivationPractices,
+    this.harvestDate,
+    this.bestBeforeDate,
   });
 
   Product copyWith({
@@ -42,6 +50,10 @@ class Product {
     String? imageUrl,
     bool? isAvailable,
     String? qrCodeData,
+    String? videoUrl,
+    String? cultivationPractices,
+    String? harvestDate,
+    String? bestBeforeDate,
   }) {
     return Product(
       id: this.id,
@@ -57,6 +69,10 @@ class Product {
       dateAdded: this.dateAdded,
       isAvailable: isAvailable ?? this.isAvailable,
       qrCodeData: qrCodeData ?? this.qrCodeData,
+      videoUrl: videoUrl ?? this.videoUrl,
+      cultivationPractices: cultivationPractices ?? this.cultivationPractices,
+      harvestDate: harvestDate ?? this.harvestDate,
+      bestBeforeDate: bestBeforeDate ?? this.bestBeforeDate,
     );
   }
 
@@ -75,19 +91,32 @@ class Product {
       'dateAdded': dateAdded.toIso8601String(),
       'isAvailable': isAvailable,
       'qrCodeData': qrCodeData,
+      'videoUrl': videoUrl,
+      'cultivationPractices': cultivationPractices,
+      'harvestDate': harvestDate,
+      'bestBeforeDate': bestBeforeDate,
     };
   }
 
   factory Product.fromJson(Map<String, dynamic> json) {
     FarmingMethod method;
     switch (json['farmingMethod']) {
-      case 'FarmingMethod.organic': method = FarmingMethod.organic; break;
-      case 'FarmingMethod.natural': method = FarmingMethod.natural; break;
-      case 'FarmingMethod.conventional': method = FarmingMethod.conventional; break;
-      case 'FarmingMethod.hydroponic': method = FarmingMethod.hydroponic; break;
-      default: method = FarmingMethod.conventional;
+      case 'FarmingMethod.organic':
+        method = FarmingMethod.organic;
+        break;
+      case 'FarmingMethod.natural':
+        method = FarmingMethod.natural;
+        break;
+      case 'FarmingMethod.conventional':
+        method = FarmingMethod.conventional;
+        break;
+      case 'FarmingMethod.hydroponic':
+        method = FarmingMethod.hydroponic;
+        break;
+      default:
+        method = FarmingMethod.conventional;
     }
-    
+
     return Product(
       id: json['id'],
       name: json['name'],
@@ -102,16 +131,25 @@ class Product {
       dateAdded: DateTime.parse(json['dateAdded']),
       isAvailable: json['isAvailable'] ?? true,
       qrCodeData: json['qrCodeData'],
+      videoUrl: json['videoUrl'],
+      cultivationPractices: json['cultivationPractices'],
+      harvestDate: json['harvestDate'],
+      bestBeforeDate: json['bestBeforeDate'],
     );
   }
 
   String get farmingMethodString {
     switch (farmingMethod) {
-      case FarmingMethod.organic: return 'Organic';
-      case FarmingMethod.natural: return 'Natural';
-      case FarmingMethod.conventional: return 'Conventional';
-      case FarmingMethod.hydroponic: return 'Hydroponic';
-      default: return 'Conventional';
+      case FarmingMethod.organic:
+        return 'Organic';
+      case FarmingMethod.natural:
+        return 'Natural';
+      case FarmingMethod.conventional:
+        return 'Conventional';
+      case FarmingMethod.hydroponic:
+        return 'Hydroponic';
+      default:
+        return 'Conventional';
     }
   }
 }

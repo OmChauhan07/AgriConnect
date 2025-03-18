@@ -1,16 +1,78 @@
-# agriconnect
+# AgriConnect
 
-A new Flutter project.
+AgriConnect is a Flutter application that connects farmers directly with consumers, enabling efficient agricultural product trading and management.
+
+## Features
+
+- User Authentication (Farmers and Consumers)
+- Product Management
+- Profile Management
+- Real-time Product Updates
+- Secure Data Storage with Supabase
+- Image Upload Functionality
+- QR Code Generation for Products
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter SDK (latest version)
+- Dart SDK
+- Android Studio / VS Code
+- Git
+- Supabase Account
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Installation
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Clone the repository
+```bash
+git clone [your-repository-url]
+```
+
+2. Install dependencies
+```bash
+flutter pub get
+```
+
+3. Configure Supabase
+- Create a `.env` file in the root directory
+- Add your Supabase credentials:
+```
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+4. Run the app
+```bash
+flutter run
+```
+
+## Project Structure
+
+```
+lib/
+├── models/         # Data models
+├── providers/      # State management
+├── screens/        # UI screens
+├── services/       # API services
+├── utils/          # Utilities and constants
+└── widgets/        # Reusable widgets
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Flutter Team
+- Supabase
+- All contributors

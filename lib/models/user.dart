@@ -19,7 +19,7 @@ class User {
     required this.role,
     this.profileImageUrl,
     this.rating = 0.0,
-    required this.phone,
+    this.phone = '',
     this.address,
     this.description,
   });
@@ -66,7 +66,9 @@ class User {
       id: json['id'],
       name: json['name'],
       email: json['email'],
-      role: json['role'] == 'UserRole.farmer' ? UserRole.farmer : UserRole.consumer,
+      role: json['role'] == 'UserRole.farmer'
+          ? UserRole.farmer
+          : UserRole.consumer,
       profileImageUrl: json['profileImageUrl'],
       rating: json['rating'] ?? 0.0,
       phone: json['phone'] ?? '',

@@ -20,6 +20,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   String _errorMessage = '';
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -49,19 +51,35 @@ class _SignupScreenState extends State<SignupScreen> {
       );
 
       if (success) {
-        // Navigate to the appropriate dashboard based on user role
-        if (authProvider.currentUser!.role == UserRole.farmer) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const FarmerDashboard()),
-          );
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const ConsumerDashboard()),
+        if (mounted) {
+          // Show verification dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Verify Your Email'),
+                content: const Text(
+                  'Please check your email for a verification link. Click the link to verify your account, then come back and sign in.',
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('Go to Login'),
+                    onPressed: () {
+                      // Pop both the dialog and the signup screen
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
           );
         }
       } else {
         setState(() {
-          _errorMessage = 'Failed to create account';
+          _errorMessage =
+              authProvider.errorMessage ?? 'Failed to create account';
         });
       }
     } catch (e) {
@@ -79,7 +97,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     final role = Provider.of<AuthProvider>(context).selectedRole;
     final isCustomer = role == UserRole.consumer;
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -116,7 +134,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Role text
                 Center(
                   child: Text(
@@ -129,7 +147,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Name field
                 TextFormField(
                   controller: _nameController,
@@ -146,7 +164,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Email field
                 TextFormField(
                   controller: _emailController,
@@ -167,15 +185,27 @@ class _SignupScreenState extends State<SignupScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Password field
                 TextFormField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
                     labelText: AppStrings.password,
                     hintText: 'Enter your password',
-                    prefixIcon: Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -188,15 +218,27 @@ class _SignupScreenState extends State<SignupScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Confirm Password field
                 TextFormField(
                   controller: _confirmPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscureConfirmPassword,
+                  decoration: InputDecoration(
                     labelText: AppStrings.confirmPassword,
                     hintText: 'Confirm your password',
-                    prefixIcon: Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -209,7 +251,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   },
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Error message
                 if (_errorMessage.isNotEmpty)
                   Padding(
@@ -220,7 +262,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                
+
                 // Sign up button
                 ElevatedButton(
                   onPressed: _isLoading ? null : _signup,
@@ -236,7 +278,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       : const Text(AppStrings.signup),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Login link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

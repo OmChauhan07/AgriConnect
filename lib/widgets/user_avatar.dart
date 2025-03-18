@@ -1,26 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:agri_connect/utils/constants.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class UserAvatar extends StatelessWidget {
   final String? imageUrl;
   final double radius;
   final bool showEditIcon;
-  final VoidCallback? onTap;
+  final Function(File)? onImageSelected;
 
   const UserAvatar({
     Key? key,
     this.imageUrl,
     this.radius = 30,
     this.showEditIcon = false,
-    this.onTap,
+    this.onImageSelected,
   }) : super(key: key);
+
+  Future<void> _pickImage(BuildContext context) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 75,
+      );
+
+      if (image != null && onImageSelected != null) {
+        onImageSelected!(File(image.path));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error picking image: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         GestureDetector(
-          onTap: onTap,
+          onTap: showEditIcon ? () => _pickImage(context) : null,
           child: Container(
             width: radius * 2,
             height: radius * 2,

@@ -4,6 +4,8 @@ import 'package:agri_connect/providers/auth_provider.dart';
 import 'package:agri_connect/providers/order_provider.dart';
 import 'package:agri_connect/utils/constants.dart';
 import 'package:agri_connect/widgets/user_avatar.dart';
+import 'dart:io';
+import 'package:agri_connect/services/supabase_service.dart';
 
 class ConsumerProfileScreen extends StatefulWidget {
   const ConsumerProfileScreen({Key? key}) : super(key: key);
@@ -17,8 +19,10 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
+  final SupabaseService _supabaseService = SupabaseService();
   bool _isEditing = false;
   bool _isLoading = false;
+  bool _isUploadingImage = false;
 
   @override
   void initState() {
@@ -35,6 +39,44 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
     _phoneController.dispose();
     _addressController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleImageSelected(File imageFile) async {
+    setState(() {
+      _isUploadingImage = true;
+    });
+
+    try {
+      final user =
+          Provider.of<AuthProvider>(context, listen: false).currentUser!;
+      final imageUrl =
+          await _supabaseService.uploadProfileImage(imageFile, user.id);
+
+      if (imageUrl != null) {
+        // Update the user's profile with the new image URL
+        final updatedUser = user.copyWith(profileImageUrl: imageUrl);
+        await Provider.of<AuthProvider>(context, listen: false)
+            .updateUserProfile(
+          name: updatedUser.name,
+          phone: updatedUser.phone,
+          address: updatedUser.address,
+        );
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile image updated successfully')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating profile image: $e')),
+      );
+    } finally {
+      setState(() {
+        _isUploadingImage = false;
+      });
+    }
   }
 
   Future<void> _saveProfile() async {
@@ -54,7 +96,7 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
       );
 
       if (!mounted) return;
-      
+
       setState(() {
         _isEditing = false;
       });
@@ -78,10 +120,10 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final orderProvider = Provider.of<OrderProvider>(context);
     final user = authProvider.currentUser!;
-    
+
     // Get consumer's orders
     final orders = orderProvider.getOrdersByConsumer(user.id);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
@@ -119,20 +161,27 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
             Center(
               child: Column(
                 children: [
-                  UserAvatar(
-                    imageUrl: user.profileImageUrl,
-                    radius: 60,
-                    showEditIcon: _isEditing,
-                    onTap: _isEditing
-                        ? () {
-                            // For prototype, we'll just show a snackbar
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Image upload not available in prototype'),
-                              ),
-                            );
-                          }
-                        : null,
+                  Stack(
+                    children: [
+                      UserAvatar(
+                        imageUrl: user.profileImageUrl,
+                        radius: 60,
+                        showEditIcon: _isEditing,
+                        onImageSelected: _handleImageSelected,
+                      ),
+                      if (_isUploadingImage)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black26,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   if (!_isEditing)
@@ -248,22 +297,26 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                     ),
                     const VerticalDivider(thickness: 1),
                     _buildStatItem(
-                      count: orders.where((o) => o.status == OrderStatus.delivered).length,
+                      count: orders
+                          .where((o) => o.status == OrderStatus.delivered)
+                          .length,
                       label: 'Completed',
                     ),
                     const VerticalDivider(thickness: 1),
                     _buildStatItem(
-                      count: orders.where((o) => 
-                        o.status == OrderStatus.pending || 
-                        o.status == OrderStatus.accepted || 
-                        o.status == OrderStatus.shipped).length,
+                      count: orders
+                          .where((o) =>
+                              o.status == OrderStatus.pending ||
+                              o.status == OrderStatus.accepted ||
+                              o.status == OrderStatus.shipped)
+                          .length,
                       label: 'In Progress',
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Profile Info
               const Text(
                 'Personal Information',
@@ -289,7 +342,7 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                 value: user.address ?? 'Not provided',
               ),
               const SizedBox(height: 24),
-              
+
               // Recent Orders
               const Text(
                 'Recent Orders',
@@ -346,7 +399,8 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: _getStatusColor(order.status).withOpacity(0.1),
+                                    color: _getStatusColor(order.status)
+                                        .withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
@@ -381,7 +435,7 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                     );
                   },
                 ),
-              
+
               if (orders.length > 3)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -391,7 +445,8 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                         // In a full app, this would navigate to an orders history screen
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('View all orders screen not implemented in prototype'),
+                            content: Text(
+                                'View all orders screen not implemented in prototype'),
                           ),
                         );
                       },
@@ -404,9 +459,9 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                     ),
                   ),
                 ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Settings/Preferences
               const Text(
                 'App Settings',
@@ -423,7 +478,8 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Language settings not implemented in prototype'),
+                      content: Text(
+                          'Language settings not implemented in prototype'),
                     ),
                   );
                 },
@@ -435,14 +491,15 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Notification settings not implemented in prototype'),
+                      content: Text(
+                          'Notification settings not implemented in prototype'),
                     ),
                   );
                 },
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Logout Button
               SizedBox(
                 width: double.infinity,
@@ -572,13 +629,20 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
 
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
-      case OrderStatus.pending: return Colors.orange;
-      case OrderStatus.accepted: return Colors.blue;
-      case OrderStatus.rejected: return AppColors.errorColor;
-      case OrderStatus.shipped: return Colors.deepPurple;
-      case OrderStatus.delivered: return AppColors.successColor;
-      case OrderStatus.cancelled: return Colors.grey;
-      default: return Colors.black;
+      case OrderStatus.pending:
+        return Colors.orange;
+      case OrderStatus.accepted:
+        return Colors.blue;
+      case OrderStatus.rejected:
+        return AppColors.errorColor;
+      case OrderStatus.shipped:
+        return Colors.deepPurple;
+      case OrderStatus.delivered:
+        return AppColors.successColor;
+      case OrderStatus.cancelled:
+        return Colors.grey;
+      default:
+        return Colors.black;
     }
   }
 }

@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   String _errorMessage = '';
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -75,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final role = Provider.of<AuthProvider>(context).selectedRole;
     final isCustomer = role == UserRole.consumer;
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -112,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Role text
                 Center(
                   child: Text(
@@ -125,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Email field
                 TextFormField(
                   controller: _emailController,
@@ -146,15 +147,27 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Password field
                 TextFormField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
                     labelText: AppStrings.password,
                     hintText: 'Enter your password',
-                    prefixIcon: Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -167,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Forgot password link
                 Align(
                   alignment: Alignment.centerRight,
@@ -176,7 +189,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       // For prototype, we won't implement this
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Forgot password not implemented in prototype'),
+                          content: Text(
+                              'Forgot password not implemented in prototype'),
                         ),
                       );
                     },
@@ -187,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Error message
                 if (_errorMessage.isNotEmpty)
                   Padding(
@@ -198,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                
+
                 // Login button
                 ElevatedButton(
                   onPressed: _isLoading ? null : _login,
@@ -214,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const Text(AppStrings.login),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Sign up link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
