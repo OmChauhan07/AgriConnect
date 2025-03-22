@@ -22,6 +22,48 @@ class FarmerDashboard extends StatefulWidget {
 
 class _FarmerDashboardState extends State<FarmerDashboard> {
   int _selectedIndex = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadFarmerProducts();
+    });
+  }
+
+  Future<void> _loadFarmerProducts() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final productProvider =
+        Provider.of<ProductProvider>(context, listen: false);
+
+    try {
+      await productProvider.loadProducts();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final farmerId = authProvider.currentUser?.id;
+
+      if (farmerId != null) {
+        final products = productProvider.getProductsByFarmer(farmerId);
+        debugPrint('Farmer products loaded: ${products.length}');
+
+        // Debug first product if available
+        if (products.isNotEmpty) {
+          final firstProduct = products.first;
+          debugPrint(
+              'First farmer product: ${firstProduct.name}, ${firstProduct.price}, ${firstProduct.imageUrl}');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading farmer products: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +88,18 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
       appBar: AppBar(
         title: Text(LocalizedStrings.get(context, 'farmerDashboard')),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              _loadFarmerProducts();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(LocalizedStrings.get(context, 'refreshing')),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
@@ -297,7 +351,26 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
               const SizedBox(height: 16),
 
               // Products List
-              if (products.isEmpty)
+              if (_isLoading)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 16),
+                        Text(
+                          LocalizedStrings.get(context, 'loadingProducts'),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppColors.greyColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else if (products.isEmpty)
                 Container(
                   padding: const EdgeInsets.all(24),
                   alignment: Alignment.center,
@@ -328,20 +401,45 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                         ),
                         textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const AddProductScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.add),
+                        label:
+                            Text(LocalizedStrings.get(context, 'addProduct')),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                        ),
+                      ),
                     ],
                   ),
                 )
               else
-                ListView.builder(
+                GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.75,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
                   itemCount: products.length,
                   itemBuilder: (context, index) {
                     return ProductCard(
                       product: products[index],
                       isFarmerView: true,
+                      isHorizontal: false,
                       onTap: () {
-                        // For prototype, just show a dialog with product details
+                        // Show product details dialog
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(

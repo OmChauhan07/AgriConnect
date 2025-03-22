@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:agri_connect/providers/auth_provider.dart';
 import 'package:agri_connect/providers/product_provider.dart';
+import 'package:agri_connect/screens/farmer/farmer_dashboard.dart';
 import 'package:agri_connect/models/product.dart';
 import 'package:agri_connect/utils/constants.dart';
 import 'package:agri_connect/utils/localization_helper.dart';
+import 'package:agri_connect/services/supabase_service.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({Key? key}) : super(key: key);
@@ -44,20 +47,34 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   Future<void> _saveProduct() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final farmerId =
-          Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
+      // Validate form
+      if (!_formKey.currentState!.validate()) {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Save form data
+      _formKey.currentState!.save();
+
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final productProvider =
           Provider.of<ProductProvider>(context, listen: false);
 
+      final user = authProvider.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      debugPrint('Adding product with farmer ID: ${user.id}');
+
+      // Create product with a default image
       final success = await productProvider.addProduct(
         name: _nameController.text.trim(),
         price: double.parse(_priceController.text),
@@ -65,7 +82,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         unit: _unitController.text.trim(),
         description: _descriptionController.text.trim(),
         farmingMethod: _selectedMethod,
-        farmerId: farmerId,
+        farmerId: user.id,
         videoUrl: _videoUrlController.text.trim(),
         cultivationPractices: _cultivationPracticesController.text.trim(),
         harvestDate: _harvestDateController.text.trim(),
@@ -73,32 +90,42 @@ class _AddProductScreenState extends State<AddProductScreen> {
       );
 
       if (success) {
-        if (!mounted) return;
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(LocalizedStrings.get(context, 'productAdded')),
+              backgroundColor: AppColors.successColor,
+            ),
+          );
+        }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Product added successfully')),
-        );
-
-        // Navigate back to previous screen instead of QR generation
-        Navigator.pop(context);
+        // Navigate back to dashboard
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const FarmerDashboard()),
+          );
+        }
       } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to add product')),
-        );
+        throw Exception('Failed to add product');
       }
     } catch (e) {
+      debugPrint('Error saving product: $e');
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+                '${LocalizedStrings.get(context, 'errorAddingProduct')}: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 

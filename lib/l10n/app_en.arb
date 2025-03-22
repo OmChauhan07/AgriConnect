@@ -347,5 +347,8 @@
   "confirm": "Confirm",
   "yes": "Yes",
   "no": "No",
-  "noCancelledOrders": "No cancelled orders"
+  "noCancelledOrders": "No cancelled orders",
+  "refreshing": "Refreshing...",
+  "productAdded": "Product added successfully",
+  "errorAddingProduct": "Error adding product"
 } 

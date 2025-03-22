@@ -178,88 +178,220 @@ class ProductCard extends StatelessWidget {
       onTap: onTap,
       child: Card(
         margin: const EdgeInsets.only(bottom: 16.0),
-        elevation: 1,
+        elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Padding(
+        child: isFarmerView
+            ? _buildFarmerProductCard()
+            : _buildConsumerProductCard(),
+      ),
+    );
+  }
+
+  Widget _buildFarmerProductCard() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Product Image
+        ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+          child: Container(
+            height: 120,
+            width: double.infinity,
+            child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                ? Image.network(
+                    product.imageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: AppColors.lightGreen,
+                        child: Icon(
+                          Icons.broken_image_outlined,
+                          color: AppColors.greyColor,
+                          size: 40,
+                        ),
+                      );
+                    },
+                  )
+                : Container(
+                    color: AppColors.lightGreen,
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      color: AppColors.greyColor,
+                      size: 40,
+                    ),
+                  ),
+          ),
+        ),
+
+        Padding(
           padding: const EdgeInsets.all(12.0),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Product Image
+              // Product name
+              Text(
+                product.name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+
+              const SizedBox(height: 4),
+
+              // Farming Method
               Container(
-                width: 80,
-                height: 80,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppColors.lightGreen,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: product.imageUrl != null
-                    ? Image.network(
-                        product.imageUrl!,
-                        fit: BoxFit.cover,
-                      )
-                    : Icon(
-                        Icons.image_not_supported_outlined,
-                        color: AppColors.greyColor,
-                      ),
+                child: Text(
+                  product.farmingMethodString,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
-              const SizedBox(width: 16),
 
-              // Product Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      product.farmingMethodString,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.greyColor,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      product.description,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.greyColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        RatingStars(rating: product.rating, size: 16),
-                        Text(
-                          '₹${product.price}/${product.unit}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+              const SizedBox(height: 8),
+
+              // Price
+              Text(
+                '₹${product.price}/${product.unit}',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryColor,
                 ),
+              ),
+
+              const SizedBox(height: 4),
+
+              // Quantity
+              Text(
+                'Quantity: ${product.quantity} ${product.unit}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.greyColor,
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              // Rating
+              Row(
+                children: [
+                  RatingStars(rating: product.rating, size: 14),
+                  const SizedBox(width: 4),
+                  Text(
+                    product.rating.toString(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.greyColor,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildConsumerProductCard() {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product Image
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.lightGreen,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                ? Image.network(
+                    product.imageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.broken_image_outlined,
+                        color: AppColors.greyColor,
+                      );
+                    },
+                  )
+                : Icon(
+                    Icons.image_not_supported_outlined,
+                    color: AppColors.greyColor,
+                  ),
+          ),
+          const SizedBox(width: 16),
+
+          // Product Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  product.farmingMethodString,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.greyColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  product.description,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.greyColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    RatingStars(rating: product.rating, size: 16),
+                    Text(
+                      '₹${product.price}/${product.unit}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

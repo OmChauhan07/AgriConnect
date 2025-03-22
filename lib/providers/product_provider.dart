@@ -39,7 +39,19 @@ class ProductProvider with ChangeNotifier {
   }
 
   List<Product> getProductsByFarmer(String farmerId) {
-    return _products.where((product) => product.farmerId == farmerId).toList();
+    debugPrint('Getting products for farmer ID: $farmerId');
+    debugPrint('Total products in list: ${_products.length}');
+
+    final farmerProducts =
+        _products.where((product) => product.farmerId == farmerId).toList();
+    debugPrint('Found ${farmerProducts.length} products for this farmer');
+
+    if (farmerProducts.isNotEmpty) {
+      debugPrint(
+          'First farmer product: ${farmerProducts[0].name}, farmerId: ${farmerProducts[0].farmerId}');
+    }
+
+    return farmerProducts;
   }
 
   Product? getProductById(String productId) {

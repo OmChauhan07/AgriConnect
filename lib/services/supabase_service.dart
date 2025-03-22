@@ -97,6 +97,11 @@ class SupabaseService {
 
       if (response is List && response.isNotEmpty) {
         debugPrint('First product data: ${response[0]}');
+        if (response[0]['farmer_id'] != null) {
+          debugPrint('Farmer ID of first product: ${response[0]['farmer_id']}');
+        } else {
+          debugPrint('First product has no farmer_id field');
+        }
       }
 
       List<Product> products = [];
@@ -172,25 +177,11 @@ class SupabaseService {
 
       debugPrint('Attempting to insert product with data: $productData');
 
-      try {
-        // Insert the product
-        final response = await _client
-            .from('products')
-            .insert(productData)
-            .select()
-            .single();
+      final response =
+          await _client.from('products').insert(productData).select().single();
 
-        debugPrint('Insert response: $response');
-
-        if (response == null) {
-          throw Exception('Failed to add product: No response from database');
-        }
-
-        debugPrint('Product added successfully: ${response['id']}');
-      } catch (dbError) {
-        debugPrint('Database error details: $dbError');
-        throw Exception('Database error: $dbError');
-      }
+      debugPrint('Insert response: $response');
+      debugPrint('Product added successfully: ${response['id']}');
     } catch (e) {
       debugPrint('Error adding product: $e');
       rethrow;
