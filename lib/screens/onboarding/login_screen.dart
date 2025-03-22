@@ -5,6 +5,8 @@ import 'package:agri_connect/screens/farmer/farmer_dashboard.dart';
 import 'package:agri_connect/screens/consumer/consumer_dashboard.dart';
 import 'package:agri_connect/screens/onboarding/signup_screen.dart';
 import 'package:agri_connect/utils/constants.dart';
+import 'package:agri_connect/utils/localization_helper.dart';
+import '../../l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -58,12 +60,14 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } else {
         setState(() {
-          _errorMessage = 'Invalid email or password';
+          _errorMessage =
+              AppLocalizations.of(context).translate('invalidCredentials');
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'An error occurred: ${e.toString()}';
+        _errorMessage =
+            '${AppLocalizations.of(context).translate('errorOccurred')}: ${e.toString()}';
       });
     } finally {
       setState(() {
@@ -81,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          AppStrings.login,
+          LocalizedStrings.login(context),
           style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: AppColors.primaryColor,
@@ -117,7 +121,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Role text
                 Center(
                   child: Text(
-                    isCustomer ? AppStrings.consumer : AppStrings.farmer,
+                    isCustomer
+                        ? LocalizedStrings.consumer(context)
+                        : LocalizedStrings.farmer(context),
                     style: TextStyle(
                       color: AppColors.primaryColor,
                       fontSize: 20,
@@ -131,17 +137,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: AppStrings.email,
-                    hintText: 'Enter your email',
-                    prefixIcon: Icon(Icons.email_outlined),
+                  decoration: InputDecoration(
+                    labelText: LocalizedStrings.email(context),
+                    hintText:
+                        AppLocalizations.of(context).translate('enterEmail'),
+                    prefixIcon: const Icon(Icons.email_outlined),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return AppLocalizations.of(context)
+                          .translate('pleaseEnterEmail');
                     }
                     if (!value.contains('@')) {
-                      return 'Please enter a valid email';
+                      return AppLocalizations.of(context)
+                          .translate('pleaseEnterValidEmail');
                     }
                     return null;
                   },
@@ -153,8 +162,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    labelText: AppStrings.password,
-                    hintText: 'Enter your password',
+                    labelText: LocalizedStrings.password(context),
+                    hintText:
+                        AppLocalizations.of(context).translate('enterPassword'),
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -171,10 +181,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
+                      return AppLocalizations.of(context)
+                          .translate('pleaseEnterPassword');
                     }
                     if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                      return AppLocalizations.of(context)
+                          .translate('passwordMinLength');
                     }
                     return null;
                   },
@@ -188,14 +200,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       // For prototype, we won't implement this
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Forgot password not implemented in prototype'),
+                        SnackBar(
+                          content: Text(AppLocalizations.of(context)
+                              .translate('forgotPasswordNotImplemented')),
                         ),
                       );
                     },
                     child: Text(
-                      'Forgot Password?',
+                      AppLocalizations.of(context).translate('forgotPassword'),
                       style: TextStyle(color: AppColors.primaryColor),
                     ),
                   ),
@@ -225,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(AppStrings.login),
+                      : Text(LocalizedStrings.login(context)),
                 ),
                 const SizedBox(height: 16),
 
@@ -234,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      AppStrings.dontHaveAccount,
+                      LocalizedStrings.dontHaveAccount(context),
                       style: TextStyle(color: AppColors.textColor),
                     ),
                     TextButton(
@@ -247,11 +259,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
                       },
                       child: Text(
-                        AppStrings.register,
-                        style: TextStyle(
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        LocalizedStrings.register(context),
+                        style: TextStyle(color: AppColors.primaryColor),
                       ),
                     ),
                   ],

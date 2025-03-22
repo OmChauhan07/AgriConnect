@@ -6,6 +6,9 @@ import 'package:agri_connect/utils/constants.dart';
 import 'package:agri_connect/widgets/user_avatar.dart';
 import 'dart:io';
 import 'package:agri_connect/services/supabase_service.dart';
+import 'package:agri_connect/screens/farmer/language_settings_screen.dart';
+import 'package:agri_connect/utils/localization_helper.dart';
+import 'package:agri_connect/l10n/app_localizations.dart';
 
 class FarmerProfileScreen extends StatefulWidget {
   const FarmerProfileScreen({Key? key}) : super(key: key);
@@ -69,11 +72,14 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
+        SnackBar(
+            content: Text(LocalizedStrings.get(context, 'profileUpdated'))),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating profile: ${e.toString()}')),
+        SnackBar(
+            content: Text(
+                '${LocalizedStrings.get(context, 'profileUpdateError')}: ${e.toString()}')),
       );
     } finally {
       setState(() {
@@ -106,13 +112,17 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile image updated successfully')),
+          SnackBar(
+              content:
+                  Text(LocalizedStrings.get(context, 'profileImageUpdated'))),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating profile image: $e')),
+        SnackBar(
+            content: Text(
+                '${LocalizedStrings.get(context, 'profileImageUpdateError')}: $e')),
       );
     } finally {
       setState(() {
@@ -127,7 +137,7 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Farmer Profile'),
+        title: Text(LocalizedStrings.get(context, 'profile')),
         actions: [
           if (!_isEditing)
             IconButton(
@@ -221,13 +231,13 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                 // Name field
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Farm/Farmer Name',
-                    prefixIcon: Icon(Icons.person_outline),
+                  decoration: InputDecoration(
+                    labelText: LocalizedStrings.get(context, 'farmName'),
+                    prefixIcon: const Icon(Icons.person_outline),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
+                      return LocalizedStrings.get(context, 'pleaseEnterName');
                     }
                     return null;
                   },
@@ -237,14 +247,14 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                 // Phone field
                 TextFormField(
                   controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number',
-                    prefixIcon: Icon(Icons.phone_outlined),
+                  decoration: InputDecoration(
+                    labelText: LocalizedStrings.get(context, 'phoneNumber'),
+                    prefixIcon: const Icon(Icons.phone_outlined),
                   ),
                   keyboardType: TextInputType.phone,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
+                      return LocalizedStrings.get(context, 'pleaseEnterPhone');
                     }
                     return null;
                   },
@@ -254,13 +264,14 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                 // Address field
                 TextFormField(
                   controller: _addressController,
-                  decoration: const InputDecoration(
-                    labelText: 'Farm Address',
-                    prefixIcon: Icon(Icons.location_on_outlined),
+                  decoration: InputDecoration(
+                    labelText: LocalizedStrings.get(context, 'farmAddress'),
+                    prefixIcon: const Icon(Icons.location_on_outlined),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your farm address';
+                      return LocalizedStrings.get(
+                          context, 'pleaseEnterAddress');
                     }
                     return null;
                   },
@@ -270,15 +281,16 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                 // Description field
                 TextFormField(
                   controller: _descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Farm Description',
-                    prefixIcon: Icon(Icons.description_outlined),
+                  decoration: InputDecoration(
+                    labelText: LocalizedStrings.get(context, 'farmDescription'),
+                    prefixIcon: const Icon(Icons.description_outlined),
                     alignLabelWithHint: true,
                   ),
                   maxLines: 3,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your farm description';
+                      return LocalizedStrings.get(
+                          context, 'pleaseEnterDescription');
                     }
                     return null;
                   },
@@ -299,7 +311,7 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text('Save Profile'),
+                        : Text(LocalizedStrings.get(context, 'save')),
                   ),
                 ),
               ] else ...[
@@ -330,9 +342,9 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                 const SizedBox(height: 32),
 
                 // Farming Certifications Section
-                const Text(
-                  'Farming Certifications',
-                  style: TextStyle(
+                Text(
+                  LocalizedStrings.get(context, 'farmingCertifications'),
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -355,20 +367,22 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Organic Certification',
-                                style: TextStyle(
+                                LocalizedStrings.get(
+                                    context, 'organicCertification'),
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               SizedBox(height: 4),
                               Text(
-                                'Tap to add your organic farming certification',
-                                style: TextStyle(
+                                LocalizedStrings.get(
+                                    context, 'tapToAddCertification'),
+                                style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 12,
                                 ),
@@ -387,6 +401,47 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
 
                 const SizedBox(height: 32),
 
+                // App Settings Section
+                Text(
+                  LocalizedStrings.get(context, 'settings'),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Language Settings
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightGreen,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.language_outlined,
+                      color: AppColors.primaryColor,
+                      size: 20,
+                    ),
+                  ),
+                  title: Text(LocalizedStrings.get(context, 'language')),
+                  subtitle: Text(_getLanguageName(context)),
+                  trailing: const Icon(Icons.chevron_right),
+                  contentPadding: EdgeInsets.zero,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const FarmerLanguageSettingsScreen(),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 32),
+
                 // Logout Button
                 SizedBox(
                   width: double.infinity,
@@ -401,7 +456,7 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                       side: BorderSide(color: AppColors.errorColor),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Logout'),
+                    child: Text(LocalizedStrings.get(context, 'logout')),
                   ),
                 ),
               ],
@@ -461,5 +516,19 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
         ],
       ),
     );
+  }
+
+  String _getLanguageName(BuildContext context) {
+    final locale = AppLocalizations.of(context).locale;
+    switch (locale.languageCode) {
+      case 'en':
+        return 'English';
+      case 'hi':
+        return 'हिंदी (Hindi)';
+      case 'gu':
+        return 'ગુજરાતી (Gujarati)';
+      default:
+        return 'English';
+    }
   }
 }

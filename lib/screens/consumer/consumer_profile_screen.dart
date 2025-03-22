@@ -6,6 +6,10 @@ import 'package:agri_connect/utils/constants.dart';
 import 'package:agri_connect/widgets/user_avatar.dart';
 import 'dart:io';
 import 'package:agri_connect/services/supabase_service.dart';
+import 'package:agri_connect/screens/consumer/language_settings_screen.dart';
+import 'package:agri_connect/utils/localization_helper.dart';
+import 'package:agri_connect/l10n/app_localizations.dart';
+import 'package:agri_connect/widgets/language_switcher.dart';
 
 class ConsumerProfileScreen extends StatefulWidget {
   const ConsumerProfileScreen({Key? key}) : super(key: key);
@@ -27,10 +31,16 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final user = Provider.of<AuthProvider>(context, listen: false).currentUser!;
-    _nameController = TextEditingController(text: user.name);
-    _phoneController = TextEditingController(text: user.phone);
-    _addressController = TextEditingController(text: user.address ?? '');
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
+    if (user != null) {
+      _nameController.text = user.name;
+      _phoneController.text = user.phone;
+      _addressController.text = user.address ?? '';
+    }
   }
 
   @override
@@ -64,13 +74,17 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile image updated successfully')),
+          SnackBar(
+              content:
+                  Text(LocalizedStrings.get(context, 'profileImageUpdated'))),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating profile image: $e')),
+        SnackBar(
+            content: Text(
+                '${LocalizedStrings.get(context, 'profileImageUpdateError')}: $e')),
       );
     } finally {
       setState(() {
@@ -80,53 +94,55 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await Provider.of<AuthProvider>(context, listen: false).updateUserProfile(
-        name: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        address: _addressController.text.trim(),
-      );
-
-      if (!mounted) return;
-
+    if (_formKey.currentState!.validate()) {
       setState(() {
-        _isEditing = false;
+        _isLoading = true;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating profile: ${e.toString()}')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      try {
+        await Provider.of<AuthProvider>(context, listen: false)
+            .updateUserProfile(
+          name: _nameController.text,
+          phone: _phoneController.text,
+          address: _addressController.text,
+        );
+
+        if (!mounted) return;
+        setState(() {
+          _isEditing = false;
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(LocalizedStrings.get(context, 'profileUpdated'))),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  '${LocalizedStrings.get(context, 'profileUpdateError')}: ${e.toString()}')),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final orderProvider = Provider.of<OrderProvider>(context);
     final user = authProvider.currentUser!;
-
-    // Get consumer's orders
-    final orders = orderProvider.getOrdersByConsumer(user.id);
+    final orders =
+        Provider.of<OrderProvider>(context).getOrdersByConsumer(user.id);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text(LocalizedStrings.get(context, 'profile')),
         actions: [
           if (!_isEditing)
             IconButton(
@@ -139,17 +155,15 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
             )
           else
             IconButton(
-              icon: const Icon(Icons.cancel),
+              icon: const Icon(Icons.close),
               onPressed: () {
                 setState(() {
                   _isEditing = false;
-                  // Reset controllers to current user values
-                  _nameController.text = user.name;
-                  _phoneController.text = user.phone;
-                  _addressController.text = user.address ?? '';
+                  _loadUserData(); // Reset form data
                 });
               },
             ),
+          const LanguageSwitcher(),
         ],
       ),
       body: SingleChildScrollView(
@@ -215,13 +229,14 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                     // Name field
                     TextFormField(
                       controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Full Name',
-                        prefixIcon: Icon(Icons.person_outline),
+                      decoration: InputDecoration(
+                        labelText: LocalizedStrings.get(context, 'name'),
+                        prefixIcon: const Icon(Icons.person_outline),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your name';
+                          return LocalizedStrings.get(
+                              context, 'pleaseEnterName');
                         }
                         return null;
                       },
@@ -231,14 +246,15 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                     // Phone field
                     TextFormField(
                       controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone Number',
-                        prefixIcon: Icon(Icons.phone_outlined),
+                      decoration: InputDecoration(
+                        labelText: LocalizedStrings.get(context, 'phoneNumber'),
+                        prefixIcon: const Icon(Icons.phone_outlined),
                       ),
                       keyboardType: TextInputType.phone,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your phone number';
+                          return LocalizedStrings.get(
+                              context, 'pleaseEnterPhone');
                         }
                         return null;
                       },
@@ -248,13 +264,14 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                     // Address field
                     TextFormField(
                       controller: _addressController,
-                      decoration: const InputDecoration(
-                        labelText: 'Delivery Address',
-                        prefixIcon: Icon(Icons.location_on_outlined),
+                      decoration: InputDecoration(
+                        labelText: LocalizedStrings.get(context, 'address'),
+                        prefixIcon: const Icon(Icons.location_on_outlined),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your address';
+                          return LocalizedStrings.get(
+                              context, 'pleaseEnterAddress');
                         }
                         return null;
                       },
@@ -275,7 +292,8 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text('Save Profile'),
+                            : Text(
+                                LocalizedStrings.get(context, 'saveProfile')),
                       ),
                     ),
                   ],
@@ -293,14 +311,14 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                   children: [
                     _buildStatItem(
                       count: orders.length,
-                      label: 'Total Orders',
+                      label: LocalizedStrings.get(context, 'totalOrders'),
                     ),
                     const VerticalDivider(thickness: 1),
                     _buildStatItem(
                       count: orders
                           .where((o) => o.status == OrderStatus.delivered)
                           .length,
-                      label: 'Completed',
+                      label: LocalizedStrings.get(context, 'completed'),
                     ),
                     const VerticalDivider(thickness: 1),
                     _buildStatItem(
@@ -310,7 +328,7 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                               o.status == OrderStatus.accepted ||
                               o.status == OrderStatus.shipped)
                           .length,
-                      label: 'In Progress',
+                      label: LocalizedStrings.get(context, 'inProgress'),
                     ),
                   ],
                 ),
@@ -318,9 +336,9 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
               const SizedBox(height: 24),
 
               // Profile Info
-              const Text(
-                'Personal Information',
-                style: TextStyle(
+              Text(
+                LocalizedStrings.get(context, 'personalInformation'),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -328,25 +346,28 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
               const SizedBox(height: 16),
               _buildProfileInfoItem(
                 icon: Icons.email_outlined,
-                label: 'Email',
+                label: LocalizedStrings.get(context, 'email'),
                 value: user.email,
               ),
               _buildProfileInfoItem(
                 icon: Icons.phone_outlined,
-                label: 'Phone',
-                value: user.phone.isNotEmpty ? user.phone : 'Not provided',
+                label: LocalizedStrings.get(context, 'phone'),
+                value: user.phone.isNotEmpty
+                    ? user.phone
+                    : LocalizedStrings.get(context, 'notProvided'),
               ),
               _buildProfileInfoItem(
                 icon: Icons.location_on_outlined,
-                label: 'Address',
-                value: user.address ?? 'Not provided',
+                label: LocalizedStrings.get(context, 'address'),
+                value: user.address ??
+                    LocalizedStrings.get(context, 'notProvided'),
               ),
               const SizedBox(height: 24),
 
               // Recent Orders
-              const Text(
-                'Recent Orders',
-                style: TextStyle(
+              Text(
+                LocalizedStrings.get(context, 'recentOrders'),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -366,7 +387,7 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                         color: AppColors.greyColor,
                       ),
                       const SizedBox(width: 16),
-                      const Text('No orders yet. Start shopping!'),
+                      Text(LocalizedStrings.get(context, 'noOrdersYet')),
                     ],
                   ),
                 )
@@ -444,14 +465,14 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                       onPressed: () {
                         // In a full app, this would navigate to an orders history screen
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                                'View all orders screen not implemented in prototype'),
+                          SnackBar(
+                            content: Text(LocalizedStrings.get(
+                                context, 'featureNotAvailable')),
                           ),
                         );
                       },
                       child: Text(
-                        'View All Orders',
+                        LocalizedStrings.get(context, 'viewAllOrders'),
                         style: TextStyle(
                           color: AppColors.primaryColor,
                         ),
@@ -463,9 +484,9 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
               const SizedBox(height: 32),
 
               // Settings/Preferences
-              const Text(
-                'App Settings',
-                style: TextStyle(
+              Text(
+                LocalizedStrings.get(context, 'appSettings'),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -473,26 +494,26 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
               const SizedBox(height: 16),
               _buildSettingsItem(
                 icon: Icons.language_outlined,
-                title: 'Language',
-                subtitle: 'English',
+                title: LocalizedStrings.get(context, 'language'),
+                subtitle: _getCurrentLanguage(context),
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                          'Language settings not implemented in prototype'),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LanguageSettingsScreen(),
                     ),
                   );
                 },
               ),
               _buildSettingsItem(
                 icon: Icons.notifications_outlined,
-                title: 'Notifications',
-                subtitle: 'Enabled',
+                title: LocalizedStrings.get(context, 'notifications'),
+                subtitle: LocalizedStrings.get(context, 'enabled'),
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text(
-                          'Notification settings not implemented in prototype'),
+                          LocalizedStrings.get(context, 'featureNotAvailable')),
                     ),
                   );
                 },
@@ -513,7 +534,7 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
                     side: BorderSide(color: AppColors.errorColor),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text('Logout'),
+                  child: Text(LocalizedStrings.get(context, 'logout')),
                 ),
               ),
             ],
@@ -643,6 +664,21 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
         return Colors.grey;
       default:
         return Colors.black;
+    }
+  }
+
+  // Helper to get current language name
+  String _getCurrentLanguage(BuildContext context) {
+    final locale = AppLocalizations.of(context).locale;
+    switch (locale.languageCode) {
+      case 'en':
+        return 'English';
+      case 'hi':
+        return 'हिंदी (Hindi)';
+      case 'gu':
+        return 'ગુજરાતી (Gujarati)';
+      default:
+        return 'English';
     }
   }
 }

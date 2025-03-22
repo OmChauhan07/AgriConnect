@@ -9,6 +9,9 @@ import 'package:agri_connect/screens/farmer/farmer_profile_screen.dart';
 import 'package:agri_connect/widgets/product_card.dart';
 import 'package:agri_connect/widgets/bottom_navigation.dart';
 import 'package:agri_connect/utils/constants.dart';
+import 'package:agri_connect/utils/localization_helper.dart';
+import 'package:agri_connect/widgets/language_switcher.dart';
+import 'package:agri_connect/l10n/app_localizations.dart';
 
 class FarmerDashboard extends StatefulWidget {
   const FarmerDashboard({Key? key}) : super(key: key);
@@ -25,36 +28,42 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
     final authProvider = Provider.of<AuthProvider>(context);
     final productProvider = Provider.of<ProductProvider>(context);
     final orderProvider = Provider.of<OrderProvider>(context);
-    
+    final localizations = AppLocalizations.of(context);
+
     final user = authProvider.currentUser!;
     final farmerId = user.id;
-    
+
     final products = productProvider.getProductsByFarmer(farmerId);
     final orderCounts = orderProvider.getOrderCountsByStatusForFarmer(farmerId);
     final totalSales = orderProvider.getTotalSalesForFarmer(farmerId);
-    
+
     // Calculate order stats
     final pendingOrders = orderCounts[OrderStatus.pending] ?? 0;
     final deliveredOrders = orderCounts[OrderStatus.delivered] ?? 0;
     final totalOrders = orderProvider.getOrdersByFarmer(farmerId).length;
-    
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Farmer Dashboard'),
+        title: Text(LocalizedStrings.get(context, 'farmerDashboard')),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications not implemented in prototype')),
+                SnackBar(
+                    content: Text(
+                        LocalizedStrings.get(context, 'featureNotAvailable'))),
               );
             },
           ),
+          const LanguageSwitcher(isDashboard: true),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings not implemented in prototype')),
+                SnackBar(
+                    content: Text(
+                        LocalizedStrings.get(context, 'featureNotAvailable'))),
               );
             },
           ),
@@ -82,7 +91,8 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.primaryColor, width: 2),
+                        border:
+                            Border.all(color: AppColors.primaryColor, width: 2),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(35),
@@ -91,11 +101,12 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                                 user.profileImageUrl!,
                                 fit: BoxFit.cover,
                               )
-                            : const Icon(Icons.person, size: 40, color: Colors.grey),
+                            : const Icon(Icons.person,
+                                size: 40, color: Colors.grey),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    
+
                     // Farmer Info
                     Expanded(
                       child: Column(
@@ -109,31 +120,28 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(Icons.star, color: Colors.amber, size: 16),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${user.rating} Rating',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppColors.textColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
                           Text(
                             user.email,
                             style: TextStyle(
                               fontSize: 14,
-                              color: AppColors.textColor,
+                              color: AppColors.greyColor,
                             ),
                           ),
+                          // Add phone number if available
+                          if (user.phone.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              user.phone,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.greyColor,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
-                    
+
                     // Edit Profile Button
                     IconButton(
                       icon: Icon(
@@ -152,12 +160,12 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Order Statistics Section
               Text(
-                'Order Statistics',
+                LocalizedStrings.get(context, 'orderStatistics'),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -165,34 +173,34 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               Row(
                 children: [
                   _buildStatCard(
-                    title: 'Total Orders',
+                    title: LocalizedStrings.get(context, 'totalOrders'),
                     value: '$totalOrders',
                     icon: Icons.shopping_bag_outlined,
                     color: AppColors.primaryColor,
                   ),
                   const SizedBox(width: 12),
                   _buildStatCard(
-                    title: 'Pending',
+                    title: LocalizedStrings.get(context, 'pending'),
                     value: '$pendingOrders',
                     icon: Icons.pending_outlined,
                     color: Colors.orange,
                   ),
                   const SizedBox(width: 12),
                   _buildStatCard(
-                    title: 'Delivered',
+                    title: LocalizedStrings.get(context, 'delivered'),
                     value: '$deliveredOrders',
                     icon: Icons.check_circle_outline,
                     color: AppColors.successColor,
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Sales Chart
               if (totalOrders > 0)
                 Container(
@@ -217,7 +225,7 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Sales Overview',
+                            LocalizedStrings.get(context, 'salesOverview'),
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: AppColors.textColor,
@@ -234,99 +242,93 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                         ],
                       ),
                       const SizedBox(height: 12),
+
+                      // Placeholder for Sales Chart
                       Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _buildOrderStatusIndicator(
-                              'Delivered', 
-                              orderCounts[OrderStatus.delivered] ?? 0, 
-                              AppColors.primaryColor
+                        child: Center(
+                          child: Text(
+                            LocalizedStrings.get(
+                                context, 'salesChartPlaceholder'),
+                            style: TextStyle(
+                              color: AppColors.greyColor,
+                              fontStyle: FontStyle.italic,
                             ),
-                            _buildOrderStatusIndicator(
-                              'Pending', 
-                              orderCounts[OrderStatus.pending] ?? 0, 
-                              Colors.orange
-                            ),
-                            _buildOrderStatusIndicator(
-                              'Shipped', 
-                              orderCounts[OrderStatus.shipped] ?? 0, 
-                              Colors.blue
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Your Products Section
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Your Products',
+                    LocalizedStrings.get(context, 'yourProducts'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textColor,
                     ),
                   ),
-                  TextButton.icon(
+                  TextButton(
                     onPressed: () {
+                      setState(() {
+                        _selectedIndex = 3;
+                      });
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const AddProductScreen(),
-                        ),
+                            builder: (context) => const AddProductScreen()),
                       );
                     },
-                    icon: Icon(Icons.add, color: AppColors.primaryColor),
-                    label: Text(
-                      'Add New',
-                      style: TextStyle(color: AppColors.primaryColor),
+                    child: Text(
+                      LocalizedStrings.get(context, 'addNew'),
+                      style: TextStyle(
+                        color: AppColors.primaryColor,
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              
-              // Product List
+
+              // Products List
               if (products.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          size: 48,
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_shopping_cart,
+                        size: 48,
+                        color: AppColors.greyColor,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        LocalizedStrings.get(context, 'noProductsYet'),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.textColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        LocalizedStrings.get(context, 'tapAddProductToStart'),
+                        style: TextStyle(
+                          fontSize: 14,
                           color: AppColors.greyColor,
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No products added yet',
-                          style: TextStyle(
-                            color: AppColors.greyColor,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const AddProductScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text('Add Your First Product'),
-                        ),
-                      ],
-                    ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 )
               else
@@ -348,9 +350,12 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Price: ₹${products[index].price}/${products[index].unit}'),
-                                Text('Quantity: ${products[index].quantity} ${products[index].unit}'),
-                                Text('Farming Method: ${products[index].farmingMethodString}'),
+                                Text(
+                                    '${LocalizedStrings.get(context, 'price')}: ₹${products[index].price}/${products[index].unit}'),
+                                Text(
+                                    '${LocalizedStrings.get(context, 'quantity')}: ${products[index].quantity} ${products[index].unit}'),
+                                Text(
+                                    '${LocalizedStrings.get(context, 'farmingMethod')}: ${products[index].farmingMethodString}'),
                                 const SizedBox(height: 8),
                                 Text(products[index].description),
                               ],
@@ -358,7 +363,8 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: const Text('Close'),
+                                child: Text(
+                                    LocalizedStrings.get(context, 'close')),
                               ),
                             ],
                           ),
@@ -387,16 +393,18 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
           setState(() {
             _selectedIndex = index;
           });
-          
+
           if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ManageOrdersScreen()),
+              MaterialPageRoute(
+                  builder: (context) => const ManageOrdersScreen()),
             );
           } else if (index == 2) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const FarmerProfileScreen()),
+              MaterialPageRoute(
+                  builder: (context) => const FarmerProfileScreen()),
             );
           }
         },

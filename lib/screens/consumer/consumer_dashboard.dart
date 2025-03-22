@@ -8,12 +8,15 @@ import 'package:agri_connect/screens/consumer/cart_screen.dart';
 import 'package:agri_connect/screens/consumer/qr_scanner_screen.dart';
 import 'package:agri_connect/screens/consumer/consumer_profile_screen.dart';
 import 'package:agri_connect/screens/onboarding/login_screen.dart';
-import 'package:agri_connect/screens/onboarding/landing_screen.dart'; // Import the landing screen
+import 'package:agri_connect/screens/onboarding/landing_screen.dart';
 import 'package:agri_connect/widgets/product_card.dart';
 import 'package:agri_connect/widgets/user_avatar.dart';
 import 'package:agri_connect/widgets/bottom_navigation.dart';
 import 'package:agri_connect/utils/constants.dart';
 import 'package:agri_connect/utils/dummy_data.dart';
+import 'package:agri_connect/utils/localization_helper.dart';
+import 'package:agri_connect/widgets/language_switcher.dart';
+import 'package:agri_connect/l10n/app_localizations.dart';
 
 class ConsumerDashboard extends StatefulWidget {
   const ConsumerDashboard({Key? key}) : super(key: key);
@@ -26,7 +29,7 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
   int _selectedIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -38,16 +41,17 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
     final authProvider = Provider.of<AuthProvider>(context);
     final productProvider = Provider.of<ProductProvider>(context);
     final orderProvider = Provider.of<OrderProvider>(context);
-    
+    final localizations = AppLocalizations.of(context);
+
     final user = authProvider.currentUser!;
     final topProducts = productProvider.getTopRatedProducts();
     final filteredProducts = _searchQuery.isEmpty
         ? productProvider.allProducts
         : productProvider.searchProducts(_searchQuery);
-    
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Marketplace'),
+        title: Text(LocalizedStrings.get(context, 'marketplace')),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -62,10 +66,13 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications not implemented in prototype')),
+                SnackBar(
+                    content: Text(
+                        LocalizedStrings.get(context, 'featureNotAvailable'))),
               );
             },
           ),
+          const LanguageSwitcher(isDashboard: true),
           Stack(
             alignment: Alignment.center,
             children: [
@@ -118,7 +125,7 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: AppStrings.searchProducts,
+                    hintText: LocalizedStrings.searchHint(context),
                     border: InputBorder.none,
                     icon: Icon(
                       Icons.search,
@@ -144,11 +151,11 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Featured Farmers
               if (_searchQuery.isEmpty) ...[
                 Text(
-                  'Featured Farmers',
+                  LocalizedStrings.get(context, 'featuredFarmers'),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -156,7 +163,7 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 SizedBox(
                   height: 120,
                   child: ListView.builder(
@@ -209,10 +216,10 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Top Rated Products
                 Text(
-                  'Top Rated Products',
+                  LocalizedStrings.topRated(context),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -220,7 +227,7 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 SizedBox(
                   height: 230,
                   child: ListView.builder(
@@ -249,29 +256,29 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 Text(
-                  'All Products',
+                  LocalizedStrings.get(context, 'allProducts'),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textColor,
                   ),
                 ),
-              ] else ...[
+              ] else
                 Text(
-                  'Search Results',
+                  '${LocalizedStrings.get(context, 'searchResults')}: $_searchQuery',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textColor,
                   ),
                 ),
-              ],
+
               const SizedBox(height: 16),
-              
-              // Product List
-              if (filteredProducts.isEmpty)
+
+              // Product Grid
+              if (_searchQuery.isNotEmpty && filteredProducts.isEmpty)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
@@ -279,18 +286,26 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
                       children: [
                         Icon(
                           Icons.search_off,
-                          size: 48,
+                          size: 64,
                           color: AppColors.greyColor,
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          _searchQuery.isEmpty
-                              ? 'No products available'
-                              : 'No products match your search',
+                          LocalizedStrings.get(context, 'noResultsFound'),
                           style: TextStyle(
-                            color: AppColors.greyColor,
-                            fontSize: 16,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textColor,
                           ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          LocalizedStrings.get(context, 'tryDifferentSearch'),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.greyColor,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
@@ -337,7 +352,7 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
           setState(() {
             _selectedIndex = index;
           });
-          
+
           if (index == 1) {
             Navigator.push(
               context,
@@ -346,7 +361,8 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
           } else if (index == 2) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ConsumerProfileScreen()),
+              MaterialPageRoute(
+                  builder: (context) => const ConsumerProfileScreen()),
             );
           }
         },

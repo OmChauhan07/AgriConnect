@@ -5,9 +5,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:agri_connect/providers/auth_provider.dart';
 import 'package:agri_connect/providers/product_provider.dart';
 import 'package:agri_connect/providers/order_provider.dart';
+import 'package:agri_connect/providers/locale_provider.dart';
 import 'package:agri_connect/screens/onboarding/landing_screen.dart';
 import 'package:agri_connect/utils/constants.dart';
 import 'package:agri_connect/utils/supabase_config.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,73 +39,100 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'AgriConnect',
-        theme: ThemeData(
-          primaryColor: AppColors.primaryColor,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primaryColor,
-            primary: AppColors.primaryColor,
-            secondary: AppColors.accentColor,
-            background: Colors.white,
-          ),
-          appBarTheme: AppBarTheme(
-            backgroundColor: AppColors.primaryColor,
-            elevation: 0,
-            iconTheme: const IconThemeData(color: Colors.white),
-            titleTextStyle: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 15),
-            ),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppColors.primaryColor),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-          ),
-          textTheme: const TextTheme(
-            bodyLarge: TextStyle(color: Colors.black87, fontSize: 16),
-            bodyMedium: TextStyle(color: Colors.black87, fontSize: 14),
-            titleLarge: TextStyle(
-              color: Colors.black,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-            titleMedium: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+      child: const AppRoot(),
+    );
+  }
+}
+
+class AppRoot extends StatelessWidget {
+  const AppRoot({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final localeProvider = Provider.of<LocaleProvider>(context);
+    final locale = localeProvider.locale;
+
+    // Use Google Fonts based on locale
+    TextTheme textTheme;
+    if (locale.languageCode == 'hi') {
+      textTheme = GoogleFonts.notoSansDevanagariTextTheme(
+        Theme.of(context).textTheme,
+      );
+    } else if (locale.languageCode == 'gu') {
+      textTheme = GoogleFonts.notoSansGujaratiTextTheme(
+        Theme.of(context).textTheme,
+      );
+    } else {
+      textTheme = GoogleFonts.notoSansTextTheme(
+        Theme.of(context).textTheme,
+      );
+    }
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'AgriConnect',
+      locale: locale,
+      supportedLocales: const [
+        Locale('en', ''), // English
+        Locale('hi', ''), // Hindi
+        Locale('gu', ''), // Gujarati
+      ],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      theme: ThemeData(
+        primaryColor: AppColors.primaryColor,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primaryColor,
+          primary: AppColors.primaryColor,
+          secondary: AppColors.accentColor,
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: AppColors.primaryColor,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          titleTextStyle: GoogleFonts.notoSans(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        home: const LandingScreen(),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 15),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: AppColors.primaryColor),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+        ),
+        textTheme: textTheme,
       ),
+      home: const LandingScreen(),
     );
   }
 }
