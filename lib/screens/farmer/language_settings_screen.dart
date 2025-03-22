@@ -41,15 +41,32 @@ class _FarmerLanguageSettingsScreenState
   }
 
   String _getLanguageName(String code) {
+    // Use BuildContext from the widget when available
+    BuildContext? currentContext = context;
+
+    // Fallback if not mounted yet
+    if (!mounted || currentContext == null) {
+      switch (code) {
+        case 'en':
+          return 'English';
+        case 'hi':
+          return 'हिंदी (Hindi)';
+        case 'gu':
+          return 'ગુજરાતી (Gujarati)';
+        default:
+          return 'English';
+      }
+    }
+
     switch (code) {
       case 'en':
-        return 'English';
+        return LocalizedStrings.get(currentContext, 'english');
       case 'hi':
-        return 'हिंदी (Hindi)';
+        return LocalizedStrings.get(currentContext, 'hindi');
       case 'gu':
-        return 'ગુજરાતી (Gujarati)';
+        return LocalizedStrings.get(currentContext, 'gujarati');
       default:
-        return 'English';
+        return LocalizedStrings.get(currentContext, 'english');
     }
   }
 
@@ -175,15 +192,18 @@ class _FarmerLanguageSettingsScreenState
       children: [
         SimpleDialogOption(
           onPressed: () => _selectLanguage(context, 'en'),
-          child: _buildLanguageOption('English', 'en'),
+          child: _buildLanguageOption(
+              LocalizedStrings.get(context, 'english'), 'en'),
         ),
         SimpleDialogOption(
           onPressed: () => _selectLanguage(context, 'hi'),
-          child: _buildLanguageOption('हिंदी (Hindi)', 'hi'),
+          child: _buildLanguageOption(
+              LocalizedStrings.get(context, 'hindi'), 'hi'),
         ),
         SimpleDialogOption(
           onPressed: () => _selectLanguage(context, 'gu'),
-          child: _buildLanguageOption('ગુજરાતી (Gujarati)', 'gu'),
+          child: _buildLanguageOption(
+              LocalizedStrings.get(context, 'gujarati'), 'gu'),
         ),
       ],
     );
@@ -235,11 +255,7 @@ class _FarmerLanguageSettingsScreenState
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          languageCode == 'en'
-              ? 'Language changed to English'
-              : (languageCode == 'hi'
-                  ? 'भाषा हिंदी में बदली गई'
-                  : 'ભાષા ગુજરાતીમાં બદલાઈ ગઈ'),
+          LocalizedStrings.get(context, 'languageChanged'),
         ),
         duration: const Duration(seconds: 2),
       ),

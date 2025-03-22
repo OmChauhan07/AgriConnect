@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:agri_connect/providers/auth_provider.dart';
 import 'package:agri_connect/providers/product_provider.dart';
-import 'package:agri_connect/screens/farmer/qr_generation_screen.dart';
+import 'package:agri_connect/models/product.dart';
 import 'package:agri_connect/utils/constants.dart';
+import 'package:agri_connect/utils/localization_helper.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({Key? key}) : super(key: key);
@@ -23,11 +24,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _cultivationPracticesController = TextEditingController();
   final _harvestDateController = TextEditingController();
   final _bestBeforeDateController = TextEditingController();
-  
+
   FarmingMethod _selectedMethod = FarmingMethod.organic;
   bool _isOrganicCertified = false;
   bool _isLoading = false;
-  
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -41,20 +42,22 @@ class _AddProductScreenState extends State<AddProductScreen> {
     _bestBeforeDateController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _saveProduct() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
-      final farmerId = Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
-      final productProvider = Provider.of<ProductProvider>(context, listen: false);
-      
+      final farmerId =
+          Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
+      final productProvider =
+          Provider.of<ProductProvider>(context, listen: false);
+
       final success = await productProvider.addProduct(
         name: _nameController.text.trim(),
         price: double.parse(_priceController.text),
@@ -68,25 +71,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
         harvestDate: _harvestDateController.text.trim(),
         bestBeforeDate: _bestBeforeDateController.text.trim(),
       );
-      
+
       if (success) {
         if (!mounted) return;
 
-        // Get the newly added product ID for QR generation
-        final allProducts = productProvider.getProductsByFarmer(farmerId);
-        final productId = allProducts.isNotEmpty ? allProducts.last.id : '';
-        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Product added successfully')),
         );
-        
-        // Navigate to QR generation screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => QRGenerationScreen(productId: productId),
-          ),
-        );
+
+        // Navigate back to previous screen instead of QR generation
+        Navigator.pop(context);
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -94,16 +88,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -153,7 +151,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Product Name
               TextFormField(
                 controller: _nameController,
@@ -169,7 +167,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Price and Quantity
               Row(
                 children: [
@@ -195,7 +193,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  
+
                   // Quantity
                   Expanded(
                     child: TextFormField(
@@ -219,7 +217,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               // Unit
               TextFormField(
                 controller: _unitController,
@@ -235,7 +233,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Description
               TextFormField(
                 controller: _descriptionController,
@@ -319,7 +317,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
               const SizedBox(height: 24),
-              
+
               // Farming Method
               Text(
                 AppStrings.farmingMethod,
@@ -329,7 +327,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              
+
               Wrap(
                 spacing: 8,
                 children: [
@@ -340,12 +338,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               // Organic Certification
               if (_selectedMethod == FarmingMethod.organic)
                 SwitchListTile(
                   title: const Text(AppStrings.organicCertified),
-                  subtitle: const Text('This product has organic certification'),
+                  subtitle:
+                      const Text('This product has organic certification'),
                   value: _isOrganicCertified,
                   activeColor: AppColors.primaryColor,
                   contentPadding: EdgeInsets.zero,
@@ -355,9 +354,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     });
                   },
                 ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Save Button
               SizedBox(
                 width: double.infinity,
@@ -381,10 +380,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
       ),
     );
   }
-  
+
   Widget _buildMethodChip(FarmingMethod method, String label) {
     final isSelected = _selectedMethod == method;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -393,7 +392,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       },
       child: Chip(
         label: Text(label),
-        backgroundColor: isSelected ? AppColors.primaryColor : AppColors.lightGreyColor,
+        backgroundColor:
+            isSelected ? AppColors.primaryColor : AppColors.lightGreyColor,
         labelStyle: TextStyle(
           color: isSelected ? Colors.white : AppColors.textColor,
         ),

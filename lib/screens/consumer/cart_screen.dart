@@ -4,6 +4,8 @@ import 'package:agri_connect/providers/auth_provider.dart';
 import 'package:agri_connect/providers/order_provider.dart';
 import 'package:agri_connect/screens/consumer/consumer_dashboard.dart';
 import 'package:agri_connect/utils/constants.dart';
+import 'package:agri_connect/utils/localization_helper.dart';
+import 'package:agri_connect/l10n/app_localizations.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({Key? key}) : super(key: key);
@@ -29,10 +31,10 @@ class _CartScreenState extends State<CartScreen> {
     final orderProvider = Provider.of<OrderProvider>(context);
     final cartItems = orderProvider.cartItems;
     final cartTotal = orderProvider.cartTotal;
-    
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your Cart'),
+        title: Text(LocalizedStrings.get(context, 'yourCart')),
         actions: [
           if (cartItems.isNotEmpty)
             IconButton(
@@ -41,12 +43,13 @@ class _CartScreenState extends State<CartScreen> {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('Clear Cart'),
-                    content: const Text('Are you sure you want to clear your cart?'),
+                    title: Text(LocalizedStrings.get(context, 'clearCart')),
+                    content: Text(
+                        LocalizedStrings.get(context, 'clearCartConfirmation')),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
+                        child: Text(LocalizedStrings.get(context, 'cancel')),
                       ),
                       TextButton(
                         onPressed: () {
@@ -54,7 +57,7 @@ class _CartScreenState extends State<CartScreen> {
                           Navigator.pop(context);
                         },
                         child: Text(
-                          'Clear',
+                          LocalizedStrings.get(context, 'clear'),
                           style: TextStyle(color: AppColors.errorColor),
                         ),
                       ),
@@ -73,7 +76,8 @@ class _CartScreenState extends State<CartScreen> {
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: cartItems.length,
-                    separatorBuilder: (context, index) => Divider(color: Colors.grey.shade200),
+                    separatorBuilder: (context, index) =>
+                        Divider(color: Colors.grey.shade200),
                     itemBuilder: (context, index) {
                       final item = cartItems[index];
                       return _buildCartItem(item, orderProvider);
@@ -99,7 +103,8 @@ class _CartScreenState extends State<CartScreen> {
                 ],
               ),
               child: ElevatedButton(
-                onPressed: _isPlacingOrder ? null : () => _showCheckoutSheet(context),
+                onPressed:
+                    _isPlacingOrder ? null : () => _showCheckoutSheet(context),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
                 ),
@@ -112,8 +117,8 @@ class _CartScreenState extends State<CartScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        'Proceed to Checkout',
+                    : Text(
+                        LocalizedStrings.get(context, 'proceedToCheckout'),
                         style: TextStyle(fontSize: 16),
                       ),
               ),
@@ -133,7 +138,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Your cart is empty',
+            LocalizedStrings.get(context, 'cartEmpty'),
             style: TextStyle(
               fontSize: 18,
               color: AppColors.greyColor,
@@ -142,7 +147,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Add some products to your cart',
+            LocalizedStrings.get(context, 'addProductsToCart'),
             style: TextStyle(
               fontSize: 14,
               color: AppColors.greyColor,
@@ -153,10 +158,11 @@ class _CartScreenState extends State<CartScreen> {
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const ConsumerDashboard()),
+                MaterialPageRoute(
+                    builder: (context) => const ConsumerDashboard()),
               );
             },
-            child: const Text('Browse Products'),
+            child: Text(LocalizedStrings.get(context, 'browseProducts')),
           ),
         ],
       ),
@@ -186,7 +192,7 @@ class _CartScreenState extends State<CartScreen> {
                 ),
         ),
         const SizedBox(width: 16),
-        
+
         // Product Details
         Expanded(
           child: Column(
@@ -200,7 +206,7 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
               Text(
-                'Farming Method: ${item.product.farmingMethodString}',
+                '${LocalizedStrings.get(context, 'farmingMethod')}: ${item.product.farmingMethodString}',
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.greyColor,
@@ -218,7 +224,7 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                   ),
                   const Spacer(),
-                  
+
                   // Quantity controls
                   GestureDetector(
                     onTap: () {
@@ -240,7 +246,8 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(4),
@@ -319,8 +326,8 @@ class _CartScreenState extends State<CartScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Subtotal',
+              Text(
+                LocalizedStrings.get(context, 'subtotal'),
                 style: TextStyle(fontSize: 14),
               ),
               Text(
@@ -336,8 +343,8 @@ class _CartScreenState extends State<CartScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Delivery Fee',
+              Text(
+                LocalizedStrings.get(context, 'deliveryFee'),
                 style: TextStyle(fontSize: 14),
               ),
               Text(
@@ -355,8 +362,8 @@ class _CartScreenState extends State<CartScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                AppStrings.totalAmount,
+              Text(
+                LocalizedStrings.get(context, 'totalAmount'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -380,7 +387,7 @@ class _CartScreenState extends State<CartScreen> {
   void _showCheckoutSheet(BuildContext context) {
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
+
     // For prototype, we're assuming the first cart item's farmer is the seller for the entire order
     final firstItem = orderProvider.cartItems.first;
     final farmerId = firstItem.product.farmerId;
@@ -406,8 +413,8 @@ class _CartScreenState extends State<CartScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Checkout',
+                  Text(
+                    LocalizedStrings.get(context, 'checkout'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -420,10 +427,10 @@ class _CartScreenState extends State<CartScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               // Delivery Address
-              const Text(
-                'Delivery Address',
+              Text(
+                LocalizedStrings.get(context, 'deliveryAddress'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -432,17 +439,18 @@ class _CartScreenState extends State<CartScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _addressController,
-                decoration: const InputDecoration(
-                  hintText: 'Enter your delivery address',
+                decoration: InputDecoration(
+                  hintText:
+                      LocalizedStrings.get(context, 'enterDeliveryAddress'),
                   prefixIcon: Icon(Icons.location_on_outlined),
                 ),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
-              
+
               // Notes
-              const Text(
-                'Order Notes (Optional)',
+              Text(
+                LocalizedStrings.get(context, 'orderNotes'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -451,17 +459,18 @@ class _CartScreenState extends State<CartScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _notesController,
-                decoration: const InputDecoration(
-                  hintText: 'Any special instructions for delivery',
+                decoration: InputDecoration(
+                  hintText: LocalizedStrings.get(
+                      context, 'specialDeliveryInstructions'),
                   prefixIcon: Icon(Icons.note_outlined),
                 ),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
-              
+
               // Payment Options
-              const Text(
-                'Payment Method',
+              Text(
+                LocalizedStrings.get(context, 'paymentMethod'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -481,9 +490,9 @@ class _CartScreenState extends State<CartScreen> {
                       color: AppColors.primaryColor,
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Cash on Delivery',
+                        LocalizedStrings.get(context, 'cashOnDelivery'),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                         ),
@@ -497,64 +506,19 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Place Order Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    if (_addressController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter a delivery address'),
-                        ),
-                      );
-                      return;
-                    }
-                    
-                    setState(() {
-                      _isPlacingOrder = true;
-                    });
-                    
-                    Navigator.pop(context); // Close the bottom sheet
-                    
-                    try {
-                      final success = await orderProvider.placeOrder(
-                        consumerId: authProvider.currentUser!.id,
-                        farmerId: farmerId,
-                        deliveryAddress: _addressController.text.trim(),
-                        notes: _notesController.text.trim(),
-                      );
-                      
-                      if (!mounted) return;
-                      
-                      if (success) {
-                        // Show success message and navigate back to dashboard
-                        _showOrderSuccessDialog();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Failed to place order. Please try again.'),
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Error: ${e.toString()}'),
-                        ),
-                      );
-                    } finally {
-                      setState(() {
-                        _isPlacingOrder = false;
-                      });
-                    }
+                    await _placeOrder();
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 15),
                   ),
-                  child: const Text(
-                    AppStrings.placeOrder,
+                  child: Text(
+                    LocalizedStrings.get(context, 'placeOrder'),
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
@@ -565,6 +529,66 @@ class _CartScreenState extends State<CartScreen> {
         );
       },
     );
+  }
+
+  Future<void> _placeOrder() async {
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(LocalizedStrings.get(context, 'mustBeLoggedIn')),
+        ),
+      );
+      return;
+    }
+
+    if (_addressController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              LocalizedStrings.get(context, 'pleaseProvideDeliveryAddress')),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isPlacingOrder = true;
+    });
+
+    try {
+      final success = await orderProvider.placeOrder(
+        userId: user.id,
+        deliveryAddress: _addressController.text.trim(),
+        notes: _notesController.text.trim(),
+        paymentMethod: 'Cash on Delivery',
+      );
+
+      if (success) {
+        _showOrderSuccessDialog();
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(LocalizedStrings.get(context, 'orderPlaceFailed')),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              '${LocalizedStrings.get(context, 'error')}: ${e.toString()}'),
+        ),
+      );
+    } finally {
+      setState(() {
+        _isPlacingOrder = false;
+      });
+    }
   }
 
   void _showOrderSuccessDialog() {
@@ -579,11 +603,11 @@ class _CartScreenState extends State<CartScreen> {
               color: AppColors.successColor,
             ),
             const SizedBox(width: 16),
-            const Text('Order Placed!'),
+            Text(LocalizedStrings.get(context, 'orderPlaced')),
           ],
         ),
-        content: const Text(
-          'Your order has been placed successfully. You can track your order status in the Orders section.',
+        content: Text(
+          LocalizedStrings.get(context, 'orderPlacedSuccessfully'),
         ),
         actions: [
           TextButton(
@@ -596,7 +620,7 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               );
             },
-            child: const Text('OK'),
+            child: Text(LocalizedStrings.get(context, 'ok')),
           ),
         ],
       ),

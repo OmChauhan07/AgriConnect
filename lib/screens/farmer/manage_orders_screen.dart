@@ -6,6 +6,7 @@ import 'package:agri_connect/providers/order_provider.dart';
 import 'package:agri_connect/providers/product_provider.dart';
 import 'package:agri_connect/widgets/order_card.dart';
 import 'package:agri_connect/utils/constants.dart';
+import 'package:agri_connect/utils/localization_helper.dart';
 
 class ManageOrdersScreen extends StatefulWidget {
   const ManageOrdersScreen({Key? key}) : super(key: key);
@@ -14,52 +15,58 @@ class ManageOrdersScreen extends StatefulWidget {
   State<ManageOrdersScreen> createState() => _ManageOrdersScreenState();
 }
 
-class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTickerProviderStateMixin {
+class _ManageOrdersScreenState extends State<ManageOrdersScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
   }
-  
+
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final orderProvider = Provider.of<OrderProvider>(context);
     final productProvider = Provider.of<ProductProvider>(context);
-    
+
     final farmerId = authProvider.currentUser!.id;
     final allOrders = orderProvider.getOrdersByFarmer(farmerId);
-    
+
     // Filter orders by status
-    final pendingOrders = allOrders.where((order) => 
-      order.status == OrderStatus.pending).toList();
-    
-    final activeOrders = allOrders.where((order) => 
-      order.status == OrderStatus.accepted || 
-      order.status == OrderStatus.shipped).toList();
-    
-    final completedOrders = allOrders.where((order) => 
-      order.status == OrderStatus.delivered || 
-      order.status == OrderStatus.cancelled).toList();
-    
+    final pendingOrders = allOrders
+        .where((order) => order.status == OrderStatus.pending)
+        .toList();
+
+    final activeOrders = allOrders
+        .where((order) =>
+            order.status == OrderStatus.accepted ||
+            order.status == OrderStatus.shipped)
+        .toList();
+
+    final completedOrders = allOrders
+        .where((order) =>
+            order.status == OrderStatus.delivered ||
+            order.status == OrderStatus.cancelled)
+        .toList();
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manage Orders'),
+        title: Text(LocalizedStrings.get(context, 'manageOrders')),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
-          tabs: const [
-            Tab(text: 'Pending'),
-            Tab(text: 'Active'),
-            Tab(text: 'Completed'),
+          tabs: [
+            Tab(text: LocalizedStrings.get(context, 'pending')),
+            Tab(text: LocalizedStrings.get(context, 'active')),
+            Tab(text: LocalizedStrings.get(context, 'completed')),
           ],
         ),
       ),
@@ -67,20 +74,23 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
         controller: _tabController,
         children: [
           // Pending Orders Tab
-          _buildOrdersList(pendingOrders, productProvider, orderProvider, 'pending'),
-          
+          _buildOrdersList(
+              pendingOrders, productProvider, orderProvider, 'pending'),
+
           // Active Orders Tab
-          _buildOrdersList(activeOrders, productProvider, orderProvider, 'active'),
-          
+          _buildOrdersList(
+              activeOrders, productProvider, orderProvider, 'active'),
+
           // Completed Orders Tab
-          _buildOrdersList(completedOrders, productProvider, orderProvider, 'completed'),
+          _buildOrdersList(
+              completedOrders, productProvider, orderProvider, 'completed'),
         ],
       ),
     );
   }
-  
+
   Widget _buildOrdersList(
-    List<Order> orders, 
+    List<Order> orders,
     ProductProvider productProvider,
     OrderProvider orderProvider,
     String tabType,
@@ -97,7 +107,11 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
             ),
             const SizedBox(height: 16),
             Text(
-              'No $tabType orders',
+              tabType == 'pending'
+                  ? LocalizedStrings.get(context, 'noPendingOrders')
+                  : (tabType == 'active'
+                      ? LocalizedStrings.get(context, 'noActiveOrders')
+                      : LocalizedStrings.get(context, 'noCompletedOrders')),
               style: TextStyle(
                 fontSize: 18,
                 color: AppColors.greyColor,
@@ -107,25 +121,26 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
         ),
       );
     }
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: orders.length,
       itemBuilder: (context, index) {
         final order = orders[index];
-        
+
         return OrderCard(
           order: order,
           productProvider: productProvider,
-          onTap: () => _showOrderDetails(context, order, productProvider, orderProvider),
+          onTap: () =>
+              _showOrderDetails(context, order, productProvider, orderProvider),
         );
       },
     );
   }
-  
+
   void _showOrderDetails(
-    BuildContext context, 
-    Order order, 
+    BuildContext context,
+    Order order,
     ProductProvider productProvider,
     OrderProvider orderProvider,
   ) {
@@ -146,7 +161,7 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Order #${order.id.substring(1)}',
+                    '${LocalizedStrings.get(context, 'order')} #${order.id.substring(1)}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -159,16 +174,17 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               // Order status
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: _getStatusColor(order.status).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  order.statusString,
+                  _getLocalizedStatus(context, order.status),
                   style: TextStyle(
                     color: _getStatusColor(order.status),
                     fontWeight: FontWeight.w500,
@@ -176,23 +192,23 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Order date and delivery address
               Text(
-                'Order Date: ${_formatDate(order.orderDate)}',
+                '${LocalizedStrings.get(context, 'orderDate')}: ${_formatDate(order.orderDate)}',
                 style: const TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 8),
               Text(
-                'Delivery Address: ${order.deliveryAddress}',
+                '${LocalizedStrings.get(context, 'deliveryAddress')}: ${order.deliveryAddress}',
                 style: const TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 24),
-              
+
               // Order items
-              const Text(
-                'Order Items',
-                style: TextStyle(
+              Text(
+                LocalizedStrings.get(context, 'orderItems'),
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -203,8 +219,9 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
                   itemCount: order.products.length,
                   itemBuilder: (context, index) {
                     final item = order.products[index];
-                    final product = productProvider.getProductById(item.productId);
-                    
+                    final product =
+                        productProvider.getProductById(item.productId);
+
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: Container(
@@ -216,13 +233,15 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
                         ),
                         child: Center(
                           child: Image.network(
-                            product?.imageUrl ?? 'https://cdn-icons-png.flaticon.com/512/1799/1799977.png',
+                            product?.imageUrl ??
+                                'https://cdn-icons-png.flaticon.com/512/1799/1799977.png',
                             width: 30,
                             height: 30,
                           ),
                         ),
                       ),
-                      title: Text(product?.name ?? 'Unknown Product'),
+                      title: Text(product?.name ??
+                          LocalizedStrings.get(context, 'unknownProduct')),
                       subtitle: Text('₹${item.price} x ${item.quantity}'),
                       trailing: Text(
                         '₹${item.subtotal.toStringAsFixed(2)}',
@@ -234,7 +253,7 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
                   },
                 ),
               ),
-              
+
               // Total amount
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -246,9 +265,9 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Total Amount:',
-                      style: TextStyle(
+                    Text(
+                      LocalizedStrings.get(context, 'totalAmount') + ':',
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -265,31 +284,33 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               // Action buttons
               if (order.status == OrderStatus.pending)
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => _updateOrderStatus(context, order.id, OrderStatus.rejected, orderProvider),
+                        onPressed: () => _updateOrderStatus(context, order.id,
+                            OrderStatus.rejected, orderProvider),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.errorColor,
                           side: BorderSide(color: AppColors.errorColor),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text('Reject'),
+                        child: Text(LocalizedStrings.get(context, 'reject')),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => _updateOrderStatus(context, order.id, OrderStatus.accepted, orderProvider),
+                        onPressed: () => _updateOrderStatus(context, order.id,
+                            OrderStatus.accepted, orderProvider),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryColor,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text('Accept'),
+                        child: Text(LocalizedStrings.get(context, 'accept')),
                       ),
                     ),
                   ],
@@ -298,22 +319,25 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => _updateOrderStatus(context, order.id, OrderStatus.shipped, orderProvider),
+                    onPressed: () => _updateOrderStatus(
+                        context, order.id, OrderStatus.shipped, orderProvider),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Mark as Shipped'),
+                    child: Text(LocalizedStrings.get(context, 'markAsShipped')),
                   ),
                 )
               else if (order.status == OrderStatus.shipped)
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => _updateOrderStatus(context, order.id, OrderStatus.delivered, orderProvider),
+                    onPressed: () => _updateOrderStatus(context, order.id,
+                        OrderStatus.delivered, orderProvider),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Mark as Delivered'),
+                    child:
+                        Text(LocalizedStrings.get(context, 'markAsDelivered')),
                   ),
                 ),
             ],
@@ -322,44 +346,71 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> with SingleTick
       },
     );
   }
-  
+
   Future<void> _updateOrderStatus(
-    BuildContext context, 
-    String orderId, 
+    BuildContext context,
+    String orderId,
     OrderStatus newStatus,
     OrderProvider orderProvider,
   ) async {
     Navigator.pop(context); // Close the bottom sheet
-    
+
     final success = await orderProvider.updateOrderStatus(orderId, newStatus);
-    
+
     if (!mounted) return;
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          success 
-              ? 'Order status updated to ${newStatus.toString().split('.').last}'
-              : 'Failed to update order status',
+          success
+              ? '${LocalizedStrings.get(context, 'orderStatusUpdated')} ${_getLocalizedStatus(context, newStatus)}'
+              : LocalizedStrings.get(context, 'failedToUpdateStatus'),
         ),
-        backgroundColor: success ? AppColors.successColor : AppColors.errorColor,
+        backgroundColor:
+            success ? AppColors.successColor : AppColors.errorColor,
       ),
     );
   }
-  
+
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
-  
+
+  String _getLocalizedStatus(BuildContext context, OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return LocalizedStrings.get(context, 'pending');
+      case OrderStatus.accepted:
+        return LocalizedStrings.get(context, 'accepted');
+      case OrderStatus.rejected:
+        return LocalizedStrings.get(context, 'rejected');
+      case OrderStatus.shipped:
+        return LocalizedStrings.get(context, 'shipped');
+      case OrderStatus.delivered:
+        return LocalizedStrings.get(context, 'delivered');
+      case OrderStatus.cancelled:
+        return LocalizedStrings.get(context, 'cancelled');
+      default:
+        return status.toString().split('.').last;
+    }
+  }
+
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
-      case OrderStatus.pending: return Colors.orange;
-      case OrderStatus.accepted: return Colors.blue;
-      case OrderStatus.rejected: return AppColors.errorColor;
-      case OrderStatus.shipped: return Colors.deepPurple;
-      case OrderStatus.delivered: return AppColors.successColor;
-      case OrderStatus.cancelled: return Colors.grey;
-      default: return Colors.black;
+      case OrderStatus.pending:
+        return Colors.orange;
+      case OrderStatus.accepted:
+        return Colors.blue;
+      case OrderStatus.rejected:
+        return AppColors.errorColor;
+      case OrderStatus.shipped:
+        return Colors.deepPurple;
+      case OrderStatus.delivered:
+        return AppColors.successColor;
+      case OrderStatus.cancelled:
+        return Colors.grey;
+      default:
+        return Colors.black;
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:agri_connect/models/product.dart';
 import 'package:agri_connect/models/user.dart' as models;
+import 'package:agri_connect/models/order.dart';
 import 'package:agri_connect/utils/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
@@ -85,14 +86,35 @@ class SupabaseService {
 
   // Product methods
   Future<List<Product>> getProducts() async {
-    final response = await _client
-        .from('products')
-        .select()
-        .order('date_added', ascending: false);
+    try {
+      debugPrint('Fetching products from database...');
+      final response = await _client
+          .from('products')
+          .select()
+          .order('created_at', ascending: false);
 
-    return (response as List)
-        .map((product) => Product.fromJson(product))
-        .toList();
+      debugPrint('Raw response from Supabase: $response');
+
+      if (response is List && response.isNotEmpty) {
+        debugPrint('First product data: ${response[0]}');
+      }
+
+      List<Product> products = [];
+      for (var item in response as List) {
+        try {
+          products.add(Product.fromJson(item));
+        } catch (e) {
+          debugPrint('Error parsing product: $e');
+          debugPrint('Problematic data: $item');
+        }
+      }
+
+      debugPrint('Successfully parsed ${products.length} products');
+      return products;
+    } catch (e) {
+      debugPrint('Error fetching products: $e');
+      return [];
+    }
   }
 
   Future<List<Product>> getProductsByFarmer(String farmerId) async {
@@ -316,6 +338,183 @@ class SupabaseService {
     } catch (e) {
       debugPrint('Error deleting profile image: $e');
       throw Exception('Failed to delete profile image: ${e.toString()}');
+    }
+  }
+
+  // Order methods
+  Future<String> createOrder({
+    required String userId,
+    required List<Map<String, dynamic>> items,
+    required String deliveryAddress,
+    required double totalAmount,
+    required String paymentMethod,
+  }) async {
+    try {
+      final order = {
+        'user_id': userId,
+        'status': 'pending',
+        'total_amount': totalAmount,
+        'delivery_address': deliveryAddress,
+        'payment_method': paymentMethod,
+        'order_date': DateTime.now().toIso8601String(),
+      };
+
+      // Insert order and get the ID
+      final orderResponse =
+          await _client.from('orders').insert(order).select('id').single();
+
+      if (orderResponse == null) {
+        throw Exception('Failed to create order');
+      }
+
+      final orderId = orderResponse['id'];
+
+      // Insert order items
+      for (final item in items) {
+        final orderItem = {
+          'order_id': orderId,
+          'product_id': item['product_id'],
+          'quantity': item['quantity'],
+          'price': item['price'],
+        };
+
+        await _client.from('order_items').insert(orderItem);
+      }
+
+      // Update product quantities
+      for (final item in items) {
+        final productId = item['product_id'];
+        final quantity = item['quantity'];
+
+        // Get current product
+        final productResponse = await _client
+            .from('products')
+            .select('quantity')
+            .eq('id', productId)
+            .single();
+
+        if (productResponse != null) {
+          final currentQuantity = productResponse['quantity'];
+          final newQuantity = currentQuantity - quantity;
+
+          if (newQuantity >= 0) {
+            await _client
+                .from('products')
+                .update({'quantity': newQuantity}).eq('id', productId);
+          }
+        }
+      }
+
+      return orderId;
+    } catch (e) {
+      debugPrint('Create order error: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Order>> getOrdersByUser(String userId) async {
+    try {
+      // First, get all orders for this user
+      final orderResponse = await _client
+          .from('orders')
+          .select('*')
+          .eq('user_id', userId)
+          .order('order_date', ascending: false);
+
+      if (orderResponse == null) {
+        return [];
+      }
+
+      final List<Order> orders = [];
+
+      // For each order, get the order items
+      for (final orderData in orderResponse) {
+        final orderId = orderData['id'];
+
+        // Get order items
+        final itemsResponse = await _client
+            .from('order_items')
+            .select('*, products(*)')
+            .eq('order_id', orderId);
+
+        if (itemsResponse == null) {
+          continue;
+        }
+
+        final List<OrderItem> items = [];
+        String farmerId = '';
+
+        // Process order items
+        for (final item in itemsResponse) {
+          final product = item['products'];
+          if (product != null) {
+            farmerId =
+                product['farmer_id']; // Assuming all items are from same farmer
+
+            items.add(OrderItem(
+              productId: item['product_id'],
+              quantity: item['quantity'].toDouble(),
+              price: item['price'].toDouble(),
+            ));
+          }
+        }
+
+        // Convert order status string to enum
+        OrderStatus status;
+        switch (orderData['status']) {
+          case 'pending':
+            status = OrderStatus.pending;
+            break;
+          case 'accepted':
+            status = OrderStatus.accepted;
+            break;
+          case 'rejected':
+            status = OrderStatus.rejected;
+            break;
+          case 'shipped':
+            status = OrderStatus.shipped;
+            break;
+          case 'delivered':
+            status = OrderStatus.delivered;
+            break;
+          case 'cancelled':
+            status = OrderStatus.cancelled;
+            break;
+          default:
+            status = OrderStatus.pending;
+        }
+
+        // Create Order object
+        final order = Order(
+          id: orderId,
+          consumerId: userId,
+          farmerId: farmerId,
+          products: items,
+          totalAmount: orderData['total_amount'].toDouble(),
+          status: status,
+          orderDate: DateTime.parse(orderData['order_date']),
+          deliveryAddress: orderData['delivery_address'],
+          notes: orderData['notes'],
+        );
+
+        orders.add(order);
+      }
+
+      return orders;
+    } catch (e) {
+      debugPrint('Get orders error: $e');
+      return [];
+    }
+  }
+
+  Future<void> updateOrderStatus(String orderId, String status) async {
+    try {
+      await _client
+          .from('orders')
+          .update({'status': status.split('.').last}).eq('id', orderId);
+    } catch (e) {
+      debugPrint('Update order status error: $e');
+      rethrow;
     }
   }
 }

@@ -123,8 +123,6 @@ class LocalizedStrings {
       get(context, 'productVerified');
   static String productVerifiedDescription(BuildContext context) =>
       get(context, 'productVerifiedDescription');
-  static String scanToVerify(BuildContext context) =>
-      get(context, 'scanToVerify');
   static String quantity(BuildContext context) => get(context, 'quantity');
 
   static String availableQuantity(

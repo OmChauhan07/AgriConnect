@@ -13,7 +13,6 @@ class Product {
   final String? imageUrl;
   final DateTime dateAdded;
   final bool isAvailable;
-  final String? qrCodeData;
   final String? videoUrl;
   final String? cultivationPractices;
   final String? harvestDate;
@@ -32,7 +31,6 @@ class Product {
     this.imageUrl,
     required this.dateAdded,
     this.isAvailable = true,
-    this.qrCodeData,
     this.videoUrl,
     this.cultivationPractices,
     this.harvestDate,
@@ -49,7 +47,6 @@ class Product {
     double? rating,
     String? imageUrl,
     bool? isAvailable,
-    String? qrCodeData,
     String? videoUrl,
     String? cultivationPractices,
     String? harvestDate,
@@ -68,7 +65,6 @@ class Product {
       imageUrl: imageUrl ?? this.imageUrl,
       dateAdded: this.dateAdded,
       isAvailable: isAvailable ?? this.isAvailable,
-      qrCodeData: qrCodeData ?? this.qrCodeData,
       videoUrl: videoUrl ?? this.videoUrl,
       cultivationPractices: cultivationPractices ?? this.cultivationPractices,
       harvestDate: harvestDate ?? this.harvestDate,
@@ -84,57 +80,66 @@ class Product {
       'quantity': quantity,
       'unit': unit,
       'description': description,
-      'farmingMethod': farmingMethod.toString(),
-      'farmerId': farmerId,
+      'farming_method': farmingMethod.toString().split('.').last.toLowerCase(),
+      'farmer_id': farmerId,
       'rating': rating,
-      'imageUrl': imageUrl,
-      'dateAdded': dateAdded.toIso8601String(),
-      'isAvailable': isAvailable,
-      'qrCodeData': qrCodeData,
-      'videoUrl': videoUrl,
-      'cultivationPractices': cultivationPractices,
-      'harvestDate': harvestDate,
-      'bestBeforeDate': bestBeforeDate,
+      'image_url': imageUrl,
+      'date_added': dateAdded.toIso8601String(),
+      'is_available': isAvailable,
+      'video_url': videoUrl,
+      'cultivation_practices': cultivationPractices,
+      'harvest_date': harvestDate,
+      'best_before_date': bestBeforeDate,
     };
   }
 
   factory Product.fromJson(Map<String, dynamic> json) {
     FarmingMethod method;
-    switch (json['farmingMethod']) {
-      case 'FarmingMethod.organic':
+    String methodStr = json['farming_method'] ?? 'conventional';
+
+    switch (methodStr) {
+      case 'organic':
         method = FarmingMethod.organic;
         break;
-      case 'FarmingMethod.natural':
+      case 'natural':
         method = FarmingMethod.natural;
         break;
-      case 'FarmingMethod.conventional':
+      case 'conventional':
         method = FarmingMethod.conventional;
         break;
-      case 'FarmingMethod.hydroponic':
+      case 'hydroponic':
         method = FarmingMethod.hydroponic;
         break;
       default:
         method = FarmingMethod.conventional;
     }
 
+    DateTime dateAdded;
+    try {
+      dateAdded = json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now();
+    } catch (e) {
+      dateAdded = DateTime.now();
+    }
+
     return Product(
-      id: json['id'],
-      name: json['name'],
-      price: json['price'],
-      quantity: json['quantity'],
-      unit: json['unit'],
-      description: json['description'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      price: (json['price'] ?? 0).toDouble(),
+      quantity: (json['quantity'] ?? 0).toDouble(),
+      unit: json['unit'] ?? 'kg',
+      description: json['description'] ?? '',
       farmingMethod: method,
-      farmerId: json['farmerId'],
-      rating: json['rating'] ?? 0.0,
-      imageUrl: json['imageUrl'],
-      dateAdded: DateTime.parse(json['dateAdded']),
-      isAvailable: json['isAvailable'] ?? true,
-      qrCodeData: json['qrCodeData'],
-      videoUrl: json['videoUrl'],
-      cultivationPractices: json['cultivationPractices'],
-      harvestDate: json['harvestDate'],
-      bestBeforeDate: json['bestBeforeDate'],
+      farmerId: json['farmer_id'] ?? '',
+      rating: (json['rating'] ?? 0.0).toDouble(),
+      imageUrl: json['image_url'],
+      dateAdded: dateAdded,
+      isAvailable: json['is_available'] ?? true,
+      videoUrl: json['video_url'],
+      cultivationPractices: json['cultivation_practices'],
+      harvestDate: json['harvest_date'],
+      bestBeforeDate: json['best_before_date'],
     );
   }
 

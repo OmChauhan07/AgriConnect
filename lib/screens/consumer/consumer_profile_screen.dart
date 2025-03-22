@@ -31,6 +31,9 @@ class _ConsumerProfileScreenState extends State<ConsumerProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController();
+    _phoneController = TextEditingController();
+    _addressController = TextEditingController();
     _loadUserData();
   }
 

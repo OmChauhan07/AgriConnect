@@ -5,7 +5,6 @@ import 'package:agri_connect/providers/product_provider.dart';
 import 'package:agri_connect/providers/order_provider.dart';
 import 'package:agri_connect/screens/consumer/product_detail_screen.dart';
 import 'package:agri_connect/screens/consumer/cart_screen.dart';
-import 'package:agri_connect/screens/consumer/qr_scanner_screen.dart';
 import 'package:agri_connect/screens/consumer/consumer_profile_screen.dart';
 import 'package:agri_connect/screens/onboarding/login_screen.dart';
 import 'package:agri_connect/screens/onboarding/landing_screen.dart';
@@ -29,6 +28,33 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
   int _selectedIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProducts();
+    });
+  }
+
+  Future<void> _loadProducts() async {
+    final productProvider =
+        Provider.of<ProductProvider>(context, listen: false);
+
+    try {
+      await productProvider.loadProducts();
+      debugPrint('Products loaded: ${productProvider.allProducts.length}');
+
+      // Debug first product if available
+      if (productProvider.allProducts.isNotEmpty) {
+        final firstProduct = productProvider.allProducts.first;
+        debugPrint(
+            'First product: ${firstProduct.name}, ${firstProduct.price}, ${firstProduct.imageUrl}');
+      }
+    } catch (e) {
+      debugPrint('Error loading products: $e');
+    }
+  }
 
   @override
   void dispose() {
@@ -311,14 +337,40 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
                     ),
                   ),
                 )
+              else if (productProvider.isLoading)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 16),
+                        Text(
+                          LocalizedStrings.get(context, 'loadingProducts'),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppColors.greyColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               else
-                ListView.builder(
+                GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.7,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
                   itemCount: filteredProducts.length,
                   itemBuilder: (context, index) {
                     return ProductCard(
                       product: filteredProducts[index],
+                      isHorizontal: false,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -336,16 +388,7 @@ class _ConsumerDashboardState extends State<ConsumerDashboard> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primaryColor,
-        child: const Icon(Icons.qr_code_scanner),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const QRScannerScreen()),
-          );
-        },
-      ),
+      floatingActionButton: null,
       bottomNavigationBar: CustomBottomNavigation(
         selectedIndex: _selectedIndex,
         onItemSelected: (index) {

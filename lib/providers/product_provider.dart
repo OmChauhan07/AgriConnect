@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:agri_connect/models/product.dart';
 import 'package:agri_connect/utils/constants.dart';
 import 'package:agri_connect/services/supabase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProductProvider with ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
@@ -16,10 +17,21 @@ class ProductProvider with ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      _products = await _supabaseService.getProducts();
+      debugPrint('Loading products from Supabase...');
+      final products = await _supabaseService.getProducts();
+      debugPrint('Received ${products.length} products from Supabase');
+
+      if (products.isNotEmpty) {
+        debugPrint('First product: ${products[0].name}, ID: ${products[0].id}');
+      }
+
+      _products = products;
       notifyListeners();
     } catch (e) {
       debugPrint('Load products error: $e');
+      if (e is PostgrestException) {
+        debugPrint('Postgrest error: ${e.code}, ${e.message}, ${e.details}');
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -139,43 +151,6 @@ class ProductProvider with ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('Delete product error: $e');
-      return false;
-    }
-  }
-
-  String generateQRCodeData(String productId) {
-    final product = getProductById(productId);
-    if (product == null) return '';
-
-    return '''
-    {
-      "product_id": "${product.id}",
-      "name": "${product.name}",
-      "price": ${product.price},
-      "farming_method": "${product.farmingMethodString}",
-      "farmer_id": "${product.farmerId}",
-      "date_added": "${product.dateAdded.toIso8601String()}",
-      "is_verified": true
-    }
-    ''';
-  }
-
-  Future<bool> saveQRCodeData(String productId, String qrCodeData) async {
-    try {
-      final index = _products.indexWhere((product) => product.id == productId);
-      if (index != -1) {
-        final updatedProduct = _products[index].copyWith(
-          qrCodeData: qrCodeData,
-        );
-
-        await _supabaseService.updateProduct(updatedProduct);
-        _products[index] = updatedProduct;
-        notifyListeners();
-        return true;
-      }
-      return false;
-    } catch (e) {
-      debugPrint('Save QR code data error: $e');
       return false;
     }
   }

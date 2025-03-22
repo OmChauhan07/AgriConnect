@@ -3,13 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:agri_connect/models/product.dart';
 import 'package:agri_connect/providers/order_provider.dart';
+import 'package:agri_connect/providers/auth_provider.dart';
 import 'package:agri_connect/screens/consumer/cart_screen.dart';
-import 'package:agri_connect/screens/consumer/qr_scanner_screen.dart';
 import 'package:agri_connect/utils/constants.dart';
 import 'package:agri_connect/utils/dummy_data.dart';
 import 'package:agri_connect/utils/localization_helper.dart';
 import 'package:agri_connect/l10n/app_localizations.dart';
-import 'package:agri_connect/services/content_translator.dart';
+import 'package:agri_connect/services/translation_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -47,7 +48,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       _isLoading = true;
     });
 
-    final translator = ContentTranslator();
+    final translator = TranslationService();
 
     if (await translator.needsTranslation()) {
       final translations = await translator.translateTexts([
@@ -239,23 +240,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 4),
                             ),
-                            if (widget.product.qrCodeData != null)
-                              Chip(
-                                label: Text(
-                                    LocalizedStrings.get(context, 'verified')),
-                                backgroundColor: Colors.green,
-                                avatar: const Icon(
-                                  Icons.verified_outlined,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                                labelStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 4),
-                              ),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -364,73 +348,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             height: 1.5,
                           ),
                         ),
-                        const SizedBox(height: 24),
-
-                        // QR Verification
-                        if (widget.product.qrCodeData != null)
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Colors.green.shade300,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.verified_outlined,
-                                  color: Colors.green,
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        LocalizedStrings.get(
-                                            context, 'productVerified'),
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        LocalizedStrings.get(context,
-                                            'productVerifiedDescription'),
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.green.shade700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        else
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const QRScannerScreen()),
-                              );
-                            },
-                            icon: const Icon(Icons.qr_code_scanner),
-                            label: Text(
-                                LocalizedStrings.get(context, 'scanToVerify')),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primaryColor,
-                              side: BorderSide(color: AppColors.primaryColor),
-                              minimumSize: const Size(double.infinity, 50),
-                            ),
-                          ),
                         const SizedBox(height: 24),
 
                         // Quantity Selector
@@ -803,7 +720,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Future<Map<String, String>> _translateFarmerDetails(user) async {
-    final translator = ContentTranslator();
+    final translator = TranslationService();
 
     if (await translator.needsTranslation()) {
       final Map<String, String> translations = {};

@@ -311,30 +311,33 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                               strokeWidth: 2,
                             ),
                           )
-                        : Text(LocalizedStrings.get(context, 'save')),
+                        : Text(LocalizedStrings.get(context, 'saveProfile')),
                   ),
                 ),
               ] else ...[
                 // Display profile info in non-editing mode
                 _buildProfileInfoItem(
                   icon: Icons.email_outlined,
-                  label: 'Email',
+                  label: LocalizedStrings.get(context, 'email'),
                   value: user.email,
                 ),
                 _buildProfileInfoItem(
                   icon: Icons.phone_outlined,
-                  label: 'Phone',
-                  value: user.phone.isNotEmpty ? user.phone : 'Not provided',
+                  label: LocalizedStrings.get(context, 'phone'),
+                  value: user.phone.isNotEmpty
+                      ? user.phone
+                      : LocalizedStrings.get(context, 'notProvided'),
                 ),
                 _buildProfileInfoItem(
                   icon: Icons.location_on_outlined,
-                  label: 'Address',
-                  value: user.address ?? 'Not provided',
+                  label: LocalizedStrings.get(context, 'address'),
+                  value: user.address ??
+                      LocalizedStrings.get(context, 'notProvided'),
                 ),
                 if (user.description != null && user.description!.isNotEmpty)
                   _buildProfileInfoItem(
                     icon: Icons.description_outlined,
-                    label: 'About Farm',
+                    label: LocalizedStrings.get(context, 'aboutFarm'),
                     value: user.description!,
                     isMultiLine: true,
                   ),
@@ -522,13 +525,13 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
     final locale = AppLocalizations.of(context).locale;
     switch (locale.languageCode) {
       case 'en':
-        return 'English';
+        return LocalizedStrings.get(context, 'english');
       case 'hi':
-        return 'हिंदी (Hindi)';
+        return LocalizedStrings.get(context, 'hindi');
       case 'gu':
-        return 'ગુજરાતી (Gujarati)';
+        return LocalizedStrings.get(context, 'gujarati');
       default:
-        return 'English';
+        return LocalizedStrings.get(context, 'english');
     }
   }
 }
