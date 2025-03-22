@@ -350,5 +350,8 @@
   "noCancelledOrders": "No cancelled orders",
   "refreshing": "Refreshing...",
   "productAdded": "Product added successfully",
-  "errorAddingProduct": "Error adding product"
+  "errorAddingProduct": "Error adding product",
+  "noProductsFound": "No products found",
+  "organicProducts": "Organic Products",
+  "noOrganicProducts": "No organic products available"
 } 
