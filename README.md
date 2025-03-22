@@ -1,51 +1,36 @@
 # AgriConnect
 
-AgriConnect is a Flutter application that connects farmers directly with consumers, enabling efficient agricultural product trading and management.
+A Flutter application to connect farmers directly with consumers, promoting sustainable farming practices and facilitating transparent food supply chains.
 
 ## Features
 
-- User Authentication (Farmers and Consumers)
-- Product Management
-- Profile Management
-- Real-time Product Updates
-- Secure Data Storage with Supabase
-- Image Upload Functionality
-- QR Code Generation for Products
+- **Multilingual Support**: English, Hindi, and Gujarati
+- **Dual User Roles**: Separate interfaces for farmers and consumers
+- **Real-time Translation**: Automatic translation of product details
+- **Product Verification**: Verify the authenticity of agricultural products
+- **Direct Communication**: Connect farmers and consumers directly
+
+## Technical Details
+
+- Flutter framework with Provider state management
+- Supabase backend for authentication and data storage
+- Internationalization with Flutter's built-in localization
+- Translation API integration for dynamic content translation
 
 ## Getting Started
 
-### Prerequisites
-
-- Flutter SDK (latest version)
-- Dart SDK
-- Android Studio / VS Code
-- Git
-- Supabase Account
-
-### Installation
-
 1. Clone the repository
-```bash
-git clone [your-repository-url]
-```
+2. Run `flutter pub get` to install dependencies
+3. Create a `.env` file with your Supabase credentials
+4. Run `flutter run` to start the application
 
-2. Install dependencies
-```bash
-flutter pub get
-```
+## Screenshots
 
-3. Configure Supabase
-- Create a `.env` file in the root directory
-- Add your Supabase credentials:
-```
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-```
+[Screenshots will be added soon]
 
-4. Run the app
-```bash
-flutter run
-```
+## Contributors
+
+- Om Chauhan
 
 ## Project Structure
 
